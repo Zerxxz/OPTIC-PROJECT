@@ -9,12 +9,8 @@ routes:
     file: decisions.html
   - path: /agents.html
     file: agents.html
-  - path: /tracks.html
-    file: tracks.html
   - path: /links.html
     file: links.html
-  - path: /app.js
-    file: app.js
   - path: /chrome.js
     file: chrome.js
   - path: /decisions.js

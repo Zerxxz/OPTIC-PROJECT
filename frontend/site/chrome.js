@@ -1,10 +1,16 @@
-// Shared chrome — top bar, ripple layer, footer — injected by every page.
+// Shared chrome — top bar, ripple layer, footer, theme toggle.
 // Active link is determined from the data-page attribute on <body>.
 
 (function () {
   const page = document.body.dataset.page || 'home';
 
-  // Top bar
+  // ── Apply theme from localStorage (before paint) ──
+  try {
+    const t = localStorage.getItem('optic-theme');
+    if (t === 'light') document.documentElement.classList.add('theme-light');
+  } catch {}
+
+  // ── Top bar ──
   const topbar = document.createElement('header');
   topbar.className = 'topbar';
   topbar.innerHTML = `
@@ -16,30 +22,28 @@
     <nav class="nav" aria-label="Primary">
       <a href="./index.html"     data-page="home">Overview</a>
       <a href="./how.html"       data-page="how">How it works</a>
-      <a href="./decisions.html" data-page="decisions">Live decisions</a>
+      <a href="./decisions.html" data-page="decisions">Decisions</a>
       <a href="./agents.html"    data-page="agents">Agents</a>
-      <a href="./tracks.html"    data-page="tracks">Tracks</a>
       <a href="./links.html"     data-page="links">Repo</a>
     </nav>
+    <button id="themeToggle" class="theme-toggle" title="Toggle theme" aria-label="Toggle theme">☼</button>
     <button id="connectBtn" class="connect">Connect with zkLogin</button>
   `;
   document.body.prepend(topbar);
 
-  // Mark the active link
   topbar.querySelectorAll('.nav a').forEach((a) => {
     if (a.dataset.page === page) a.classList.add('active');
   });
 
-  // Water-ripple decoration layer
+  // ── Water-ripple layer (calm, slow, no flash) ──
   const ripple = document.createElement('div');
   ripple.className = 'ripple-layer';
   ripple.setAttribute('aria-hidden', 'true');
-  // 4 ripple emitters positioned across the viewport
   const ripples = [
     { x: '20%', y: '30%', delay: '0s',   cls: '' },
-    { x: '70%', y: '25%', delay: '1.5s', cls: 'r2' },
-    { x: '50%', y: '75%', delay: '3s',   cls: 'r3' },
-    { x: '85%', y: '60%', delay: '4.5s', cls: 'r4' },
+    { x: '70%', y: '25%', delay: '4s',   cls: 'r2' },
+    { x: '50%', y: '75%', delay: '8s',   cls: 'r3' },
+    { x: '85%', y: '60%', delay: '12s',  cls: 'r4' },
   ];
   ripples.forEach((r) => {
     const d = document.createElement('div');
@@ -51,7 +55,7 @@
   });
   document.body.appendChild(ripple);
 
-  // Footer (only added if not already present)
+  // ── Footer ──
   if (!document.querySelector('footer.footer')) {
     const footer = document.createElement('footer');
     footer.className = 'footer';
@@ -62,13 +66,25 @@
     document.body.appendChild(footer);
   }
 
-  // zkLogin stub (shared behavior)
+  // ── Theme toggle ──
+  const themeBtn = document.getElementById('themeToggle');
+  const updateIcon = () => {
+    const isLight = document.documentElement.classList.contains('theme-light');
+    themeBtn.textContent = isLight ? '☾' : '☼';
+  };
+  updateIcon();
+  themeBtn.addEventListener('click', () => {
+    const isLight = document.documentElement.classList.toggle('theme-light');
+    try { localStorage.setItem('optic-theme', isLight ? 'light' : 'dark'); } catch {}
+    updateIcon();
+  });
+
+  // ── zkLogin stub ──
   const btn = document.getElementById('connectBtn');
   const state = { connected: false, address: null };
   btn.addEventListener('click', async () => {
     if (state.connected) {
-      state.connected = false;
-      state.address = null;
+      state.connected = false; state.address = null;
       btn.textContent = 'Connect with zkLogin';
       btn.classList.remove('connected');
       return;
@@ -78,13 +94,26 @@
     await new Promise((r) => setTimeout(r, 1200));
     const a = '0x' + Array.from(crypto.getRandomValues(new Uint8Array(8)))
       .map((b) => b.toString(16).padStart(2, '0')).join('');
-    state.connected = true;
-    state.address = a;
+    state.connected = true; state.address = a;
     btn.textContent = `Connected · ${a.slice(0, 8)}…`;
     btn.classList.add('connected');
     btn.disabled = false;
   });
 
+  // ── View Transitions: wrap nav clicks in document.startViewTransition ──
+  // Falls back to plain navigation if the API isn't supported.
+  const supportsVT = typeof document.startViewTransition === 'function';
+  topbar.querySelectorAll('.nav a, .brand').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      const href = a.getAttribute('href');
+      if (!href || href.startsWith('http') || href.startsWith('#')) return;
+      if (a.classList.contains('active')) { e.preventDefault(); return; }
+      if (!supportsVT) return;
+      e.preventDefault();
+      document.startViewTransition(() => { window.location.href = href; });
+    });
+  });
+
   // Expose for debugging
-  window.OPTIC = { page, state, ...(window.OPTIC || {}) };
+  window.OPTIC = { page, state, supportsVT, ...(window.OPTIC || {}) };
 })();
