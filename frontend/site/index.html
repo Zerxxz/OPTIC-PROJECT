@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OPTIC — On-chain Predictable Transparent Intelligence for Commerce</title>
+  <meta name="description" content="A verifiable, auditable AI quant agent for DeepBook. Strategy hash, decision log, and Predict hedge — all on-chain." />
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%237c5cff'/><circle cx='50' cy='50' r='18' fill='%23fff'/></svg>" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo"></span>
+      <span class="brand-text">OPTIC</span>
+      <span class="suins-badge">optic.sui</span>
+    </div>
+    <nav class="nav">
+      <a href="#hero">Overview</a>
+      <a href="#how">How it works</a>
+      <a href="#live">Live decisions</a>
+      <a href="#agents">Agents</a>
+      <a href="#tracks">Tracks</a>
+      <a href="#links">Repo</a>
+    </nav>
+    <button id="connectBtn" class="connect">Connect with zkLogin</button>
+  </header>
+
+  <main>
+    <section id="hero" class="hero">
+      <div class="hero-inner">
+        <p class="kicker">Sui Overflow 2026 · Agentic Web + DeFi & Payments + DeepBook + Walrus</p>
+        <h1>Verifiable AI on a CLOB.<br/>Not a black box.</h1>
+        <p class="lede">
+          OPTIC is a multi-agent trading system where the strategy, the decision log, and the PnL
+          are all <strong>on-chain objects</strong>. Anyone can replay every decision, audit the
+          risk gates, and see exactly why an order was placed — without trusting the operator.
+        </p>
+        <div class="cta-row">
+          <a class="cta primary" href="#live">View live decisions →</a>
+          <a class="cta ghost" href="https://github.com/Zerxxz/OPTIC-PROJECT" target="_blank" rel="noreferrer">Source on GitHub</a>
+        </div>
+        <div class="hero-stats">
+          <div><span class="num">38</span><span class="lbl">Move unit tests</span></div>
+          <div><span class="num">12</span><span class="lbl">Orchestrator tests</span></div>
+          <div><span class="num">5</span><span class="lbl">Move modules</span></div>
+          <div><span class="num">3</span><span class="lbl">Specialist agents</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="how" class="how">
+      <h2>How it works</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="step">1</div>
+          <h3>Strategy commitment</h3>
+          <p>The owner uploads a strategy to <strong>Walrus</strong> and the agent stores the
+          <code>blob_id</code> + <code>sha256</code> on-chain. The Move contract refuses to act
+          on any strategy that doesn't match the committed hash.</p>
+        </div>
+        <div class="card">
+          <div class="step">2</div>
+          <h3>Capability-gated actions</h3>
+          <p>Three roles — <code>quant</code>, <code>risk</code>, <code>executor</code> — each get
+          a <code>AgentCap</code>. The Move contract enforces that an order can only be placed
+          when the right combination of caps sign the PTB.</p>
+        </div>
+        <div class="card">
+          <div class="step">3</div>
+          <h3>Multi-agent decision</h3>
+          <p>Off-chain, a <strong>Quant</strong>, <strong>Risk</strong>, and <strong>Executor</strong>
+          specialist negotiate. Risk can veto. The winning decision — with full reasoning — is
+          logged to <strong>Walrus</strong> and anchored to the on-chain audit entry.</p>
+        </div>
+        <div class="card">
+          <div class="step">4</div>
+          <h3>Predict hedge</h3>
+          <p>When realized vol crosses the threshold, <code>RiskAgent</code> opens a <strong>NO</strong>
+          position on <strong>DeepBook Predict</strong> as a tail-risk hedge. The strike is
+          computed from spot mid and capped at 1% of treasury.</p>
+        </div>
+        <div class="card">
+          <div class="step">5</div>
+          <h3>Strategy NFT via Kiosk</h3>
+          <p>The strategy blob is published to <strong>Sui Kiosk</strong> as a transferrable
+          NFT. Sell, license, or fork any strategy on a public marketplace.</p>
+        </div>
+        <div class="card">
+          <div class="step">6</div>
+          <h3>Realtime transparency</h3>
+          <p>This very page reads the audit log straight from Walrus and renders the latest
+          decisions. No backend, no scraping, no trust.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="live" class="live">
+      <h2>Live decisions</h2>
+      <p class="muted">
+        Streamed from Walrus (<code>optic.sui/audit/*</code>) — the canonical, append-only
+        decision log. Each entry is anchored to an on-chain <code>AuditEntry</code>.
+      </p>
+      <div class="filter-row">
+        <label>Agent:
+          <select id="agentFilter">
+            <option value="all">all</option>
+            <option value="quant">quant.sui</option>
+            <option value="risk">risk.sui</option>
+            <option value="executor">executor.sui</option>
+          </select>
+        </label>
+        <label>Action:
+          <select id="actionFilter">
+            <option value="all">all</option>
+            <option value="place_order">place_order</option>
+            <option value="open_hedge">open_hedge</option>
+            <option value="pause">pause</option>
+            <option value="no_op">no_op</option>
+          </select>
+        </label>
+        <button id="refreshBtn" class="ghost small">↻ Refresh</button>
+      </div>
+      <div id="decisionList" class="decisions">
+        <div class="decision placeholder">Loading decisions from Walrus…</div>
+      </div>
+    </section>
+
+    <section id="agents" class="agents">
+      <h2>The three specialist agents</h2>
+      <div class="grid three">
+        <div class="agent-card">
+          <div class="agent-id">quant.sui</div>
+          <h3>Quant</h3>
+          <p>Reads the DeepBook orderbook + indexer, evaluates a pluggable strategy
+          (mean-reversion, momentum, market-making, or custom), and proposes a trade with a
+          confidence score.</p>
+          <ul>
+            <li>Inputs: Agent state, market state, strategy blob</li>
+            <li>Output: <code>place_order</code> or <code>no_op</code></li>
+            <li>Confidence: 0–10,000 bps</li>
+          </ul>
+        </div>
+        <div class="agent-card">
+          <div class="agent-id">risk.sui</div>
+          <h3>Risk</h3>
+          <p>Monitors realized vol, drawdown, and exposure. Has <strong>veto power</strong>:
+          can pause the agent entirely or open a <strong>DeepBook Predict</strong> hedge to cap
+          downside.</p>
+          <ul>
+            <li>Circuit breaker: -$50 daily loss → pause</li>
+            <li>High vol: &gt; 8% → open NO hedge (1% of treasury)</li>
+            <li>Strike: 5% OTM put, 24h expiry</li>
+          </ul>
+        </div>
+        <div class="agent-card">
+          <div class="agent-id">executor.sui</div>
+          <h3>Executor</h3>
+          <p>Defence-in-depth gate. Re-checks every risk param, sizes within exposure limits,
+          and composes the final PTB. Logs an <code>AuditEntry</code> to Walrus.</p>
+          <ul>
+            <li>Defence in depth — never trust upstream</li>
+            <li>Idempotent dispatch</li>
+            <li>Audit log on every action</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="tracks" class="tracks">
+      <h2>Submission tracks</h2>
+      <p>OPTIC is submitted to Sui Overflow 2026 across four tracks — bonuses can stack:</p>
+      <div class="grid four">
+        <div class="track">
+          <div class="prize">$30K+</div>
+          <div class="track-name">Agentic Web</div>
+          <div class="track-desc">Core track. OPTIC is a verifiable, multi-capability AI agent.</div>
+        </div>
+        <div class="track">
+          <div class="prize">$30K+</div>
+          <div class="track-name">DeFi &amp; Payments</div>
+          <div class="track-desc">Core track. Spot + Predict + Treasury primitives on Sui.</div>
+        </div>
+        <div class="track">
+          <div class="prize">$70K</div>
+          <div class="track-name">DeepBook</div>
+          <div class="track-desc">Specialized. Quant strategy uses DeepBook CLOB + Predict hedges.</div>
+        </div>
+        <div class="track">
+          <div class="prize">$70K</div>
+          <div class="track-name">Walrus</div>
+          <div class="track-desc">Specialized. Strategy blob + audit log live on Walrus.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="links" class="links">
+      <h2>Source &amp; deployment</h2>
+      <div class="grid two">
+        <div class="card">
+          <h3>📦 Repository</h3>
+          <p><a href="https://github.com/Zerxxz/OPTIC-PROJECT" target="_blank" rel="noreferrer">github.com/Zerxxz/OPTIC-PROJECT</a></p>
+          <p>Monorepo with 5 Move modules, TypeScript SDK, multi-agent orchestrator, and this
+          Walrus Site.</p>
+        </div>
+        <div class="card">
+          <h3>🪪 Identity</h3>
+          <p>Main: <code>optic.sui</code></p>
+          <p>Agents: <code>quant.sui</code>, <code>risk.sui</code>, <code>executor.sui</code></p>
+        </div>
+        <div class="card">
+          <h3>🔐 Auth</h3>
+          <p>zkLogin — sign in with Google, prove Sui ownership without a seed phrase.</p>
+        </div>
+        <div class="card">
+          <h3>🌐 Hosting</h3>
+          <p>Walrus Site — this page is hosted as a blob on Walrus, no AWS, no central server.
+          Censorship-resistant by default.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>OPTIC · Sui Overflow 2026 · Apache-2.0</div>
+    <div>Built by <code>optic.sui</code></div>
+  </footer>
+
+  <script src="./app.js" type="module"></script>
+</body>
+</html>

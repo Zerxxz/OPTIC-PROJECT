@@ -1,0 +1,20 @@
+node_modules/
+dist/
+build/
+*.log
+.publish.log
+.DS_Store
+.env
+.env.local
+.env.*.local
+
+# Move
+contracts/**/build/
+contracts/**/Move.lock
+*.mv
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo

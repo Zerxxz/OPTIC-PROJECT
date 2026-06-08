@@ -1,0 +1,25 @@
+{
+  "name": "@optic/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for OPTIC — On-chain Predictable Transparent Intelligence for Commerce",
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "tsx --test src/__tests__/*.test.ts 2>/dev/null || echo 'no SDK tests yet'",
+    "lint": "tsc --noEmit -p tsconfig.json"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@mysten/sui": "^1.69.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

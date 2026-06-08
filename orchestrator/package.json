@@ -1,0 +1,20 @@
+{
+  "name": "@optic/orchestrator",
+  "version": "0.1.0",
+  "description": "OPTIC multi-agent orchestrator — Quant, Risk, and Executor specialists coordinated via shared on-chain state",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "tsx src/index.ts",
+    "lint": "tsc --noEmit -p tsconfig.json",
+    "test": "tsx --test src/__tests__/*.test.ts"
+  },
+  "dependencies": {
+    "@optic/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

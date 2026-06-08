@@ -1,0 +1,20 @@
+{
+  "name": "optic",
+  "version": "0.1.0",
+  "description": "OPTIC — On-chain Predictable Transparent Intelligence for Commerce. Sui Overflow 2026 submission.",
+  "private": true,
+  "license": "Apache-2.0",
+  "workspaces": [
+    "sdk",
+    "orchestrator"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

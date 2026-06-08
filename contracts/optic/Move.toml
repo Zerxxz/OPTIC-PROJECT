@@ -1,0 +1,13 @@
+[package]
+name = "optic"
+edition = "2024.beta"
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "9eaf47af2" }
+
+[dev-dependencies]
+
+[dev-addresses]
+
+[addresses]
+optic = "0x0"
