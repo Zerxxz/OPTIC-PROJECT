@@ -1,0 +1,26 @@
+{
+  "name": "OPTIC",
+  "tagline": "On-chain Predictable Transparent Intelligence for Commerce — a verifiable AI quant agent for DeepBook.",
+  "tracks": [
+    {"id": "agentic-web", "name": "Agentic Web", "tier": "core", "prize_usd": 30000},
+    {"id": "defi-payments", "name": "DeFi & Payments", "tier": "core", "prize_usd": 30000},
+    {"id": "deepbook", "name": "DeepBook", "tier": "specialized", "prize_usd": 70000},
+    {"id": "walrus", "name": "Walrus", "tier": "specialized", "prize_usd": 70000}
+  ],
+  "total_potential_usd": 200000,
+  "repo_url": "https://github.com/Zerxxz/OPTIC-PROJECT",
+  "license": "Apache-2.0",
+  "stack": ["Move", "Sui", "DeepBook V3", "Walrus", "Walrus Sites", "Sui Kiosk", "SuiNS", "zkLogin", "TypeScript"],
+  "suins_names": ["optic.sui", "quant.sui", "risk.sui", "executor.sui"],
+  "test_status": {
+    "move_unit_tests": "38/38",
+    "orchestrator_integration_tests": "12/12"
+  },
+  "commit_ref": "3c4aff4",
+  "submission_date": "2026-06-08",
+  "team": {
+    "name": "Lort",
+    "handle": "0xBojeng",
+    "github": "Zerxxz"
+  }
+}
