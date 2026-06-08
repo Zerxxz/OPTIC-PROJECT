@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tracks — OPTIC</title>
+  <meta name="description" content="OPTIC's Sui Overflow 2026 track alignment and prize stack." />
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%236fbfff'/><stop offset='1' stop-color='%2300d4ff'/></linearGradient></defs><path d='M50 8 C30 38 18 55 18 70 a32 32 0 0 0 64 0 C82 55 70 38 50 8z' fill='url(%23g)'/><circle cx='50' cy='70' r='14' fill='%23001a2c'/></svg>" />
+</head>
+<body data-page="tracks">
+  <main>
+    <header class="page-header">
+      <p class="kicker">Sui Overflow 2026</p>
+      <h1>Submission <span class="gradient">tracks</span></h1>
+      <p>OPTIC targets four tracks. A single submission can stack across categories.</p>
+    </header>
+
+    <section class="tracks">
+      <div class="grid four">
+        <div class="track">
+          <div class="prize">$30K+</div>
+          <div class="track-name">Agentic Web</div>
+          <div class="track-desc">Core track — verifiable multi-capability AI agent.</div>
+        </div>
+        <div class="track">
+          <div class="prize">$30K+</div>
+          <div class="track-name">DeFi &amp; Payments</div>
+          <div class="track-desc">Core track — risk-managed trading primitives.</div>
+        </div>
+        <div class="track">
+          <div class="prize">$70K</div>
+          <div class="track-name">DeepBook</div>
+          <div class="track-desc">Specialized — CLOB + Predict integration.</div>
+        </div>
+        <div class="track">
+          <div class="prize">$70K</div>
+          <div class="track-name">Walrus</div>
+          <div class="track-desc">Specialized — blob storage + Site + Kiosk.</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <header class="page-header" style="padding-top: 0;">
+        <h2>Per-track <span class="accent">evidence</span></h2>
+        <p>How OPTIC maps to each track's evaluation criteria.</p>
+      </header>
+
+      <div class="grid two">
+        <div class="card">
+          <h3>Agentic Web</h3>
+          <ul>
+            <li>Autonomous: <code>core::Agent</code> state machine</li>
+            <li>Multi-step: <code>runCycle()</code> 8-phase loop</li>
+            <li>Delegation: owner commits strategy hash</li>
+            <li>Recovery: pause + risk gates + defence-in-depth</li>
+            <li>Surface: Walrus Site at <code>optic.sui</code></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>DeFi &amp; Payments</h3>
+          <ul>
+            <li>Primitives: Move <code>Agent</code>, <code>Treasury&lt;T&gt;</code></li>
+            <li>Risk-managed: per-tx caps, daily loss, leverage bps</li>
+            <li>Non-custodial: owner holds Treasury</li>
+            <li>Spot + derivatives: DeepBook CLOB + Predict</li>
+            <li>Audit: <code>walrus_adapter::AuditEntry</code> on-chain</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>DeepBook</h3>
+          <ul>
+            <li>Uses DeepBook V3: <code>deepbook_adapter.move</code></li>
+            <li>Uses DeepBook Predict: <code>predict_adapter.move</code></li>
+            <li>Novel: multi-agent + risk veto + Predict hedge</li>
+            <li>Tested: framework rev 9eaf47af2 (v1.69)</li>
+            <li>Open source: Apache-2.0</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Walrus</h3>
+          <ul>
+            <li>Blob storage: strategy + audit log</li>
+            <li>Walrus Site: <code>frontend/site/</code> deployable</li>
+            <li>Censorship-resistant hosting</li>
+            <li>Kiosk: strategy NFTs (transferable, licensable)</li>
+            <li>Live updates: <code>decisions.json</code> rendered</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./chrome.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live decisions — OPTIC</title>
+  <meta name="description" content="The OPTIC audit log, streamed from Walrus and rendered in real time." />
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%236fbfff'/><stop offset='1' stop-color='%2300d4ff'/></linearGradient></defs><path d='M50 8 C30 38 18 55 18 70 a32 32 0 0 0 64 0 C82 55 70 38 50 8z' fill='url(%23g)'/><circle cx='50' cy='70' r='14' fill='%23001a2c'/></svg>" />
+</head>
+<body data-page="decisions">
+  <main>
+    <header class="page-header">
+      <p class="kicker">Audit log</p>
+      <h1>Live <span class="gradient">decisions</span></h1>
+      <p>Streamed from Walrus (<code>optic.sui/audit/*</code>) — the canonical, append-only
+        decision log. Each entry is anchored to an on-chain <code>AuditEntry</code>.</p>
+    </header>
+
+    <section class="live">
+      <div class="filter-row">
+        <label>Agent:
+          <select id="agentFilter">
+            <option value="all">all</option>
+            <option value="quant">quant.sui</option>
+            <option value="risk">risk.sui</option>
+            <option value="executor">executor.sui</option>
+          </select>
+        </label>
+        <label>Action:
+          <select id="actionFilter">
+            <option value="all">all</option>
+            <option value="place_order">place_order</option>
+            <option value="open_hedge">open_hedge</option>
+            <option value="pause">pause</option>
+            <option value="no_op">no_op</option>
+          </select>
+        </label>
+        <button id="refreshBtn" class="ghost small">↻ Refresh</button>
+      </div>
+      <div id="decisionList" class="decisions">
+        <div class="decision placeholder">Loading decisions from Walrus…</div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { renderDecisions, applyFilters, MOCK_DECISIONS, fetchLiveDecisions } from './decisions.js';
+
+    const state = { agent: 'all', action: 'all' };
+
+    function rerender() {
+      const filtered = applyFilters(MOCK_DECISIONS, { agent: state.agent, action: state.action });
+      renderDecisions(document.getElementById('decisionList'), filtered);
+    }
+
+    document.getElementById('agentFilter').addEventListener('change', (e) => { state.agent = e.target.value; rerender(); });
+    document.getElementById('actionFilter').addEventListener('change', (e) => { state.action = e.target.value; rerender(); });
+    document.getElementById('refreshBtn').addEventListener('click', async () => {
+      document.getElementById('decisionList').innerHTML = '<div class="decision placeholder">Refreshing from Walrus…</div>';
+      await load();
+    });
+
+    async function load() {
+      let data;
+      try { data = await fetchLiveDecisions(); } catch { data = null; }
+      if (!data || !data.length) data = MOCK_DECISIONS;
+      window.__decisions = data;
+      rerender();
+    }
+
+    load();
+  </script>
+  <script src="./chrome.js"></script>
+</body>
+</html>

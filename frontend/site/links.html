@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Repo &amp; deployment — OPTIC</title>
+  <meta name="description" content="Repository, deployment scripts, and identity for OPTIC." />
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%236fbfff'/><stop offset='1' stop-color='%2300d4ff'/></linearGradient></defs><path d='M50 8 C30 38 18 55 18 70 a32 32 0 0 0 64 0 C82 55 70 38 50 8z' fill='url(%23g)'/><circle cx='50' cy='70' r='14' fill='%23001a2c'/></svg>" />
+</head>
+<body data-page="links">
+  <main>
+    <header class="page-header">
+      <p class="kicker">Repository &amp; deployment</p>
+      <h1>Source &amp; <span class="gradient">deployment</span></h1>
+      <p>Open source, deployable to Sui testnet in one command.</p>
+    </header>
+
+    <section>
+      <div class="grid two">
+        <div class="card">
+          <h3>📦 Repository</h3>
+          <p><a href="https://github.com/Zerxxz/OPTIC-PROJECT" target="_blank" rel="noreferrer">github.com/Zerxxz/OPTIC-PROJECT</a></p>
+          <p>Monorepo: 5 Move modules, TypeScript SDK, multi-agent orchestrator, Walrus Site.</p>
+        </div>
+        <div class="card">
+          <h3>🪪 Identity</h3>
+          <p>Main: <code>optic.sui</code></p>
+          <p>Agents: <code>quant.sui</code>, <code>risk.sui</code>, <code>executor.sui</code></p>
+        </div>
+        <div class="card">
+          <h3>🔐 Auth</h3>
+          <p>zkLogin — sign in with Google, prove Sui ownership without a seed phrase.</p>
+        </div>
+        <div class="card">
+          <h3>🌐 Hosting</h3>
+          <p>This site is a Walrus Site — hosted as a blob, no AWS, no central server.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <header class="page-header" style="padding-top: 0;">
+        <h2>Deploy in <span class="accent">three commands</span></h2>
+        <p>From a fresh clone to a live testnet agent.</p>
+      </header>
+
+      <div class="grid">
+        <div class="card">
+          <div class="step">COMMAND 1</div>
+          <h3>Run the tests</h3>
+          <p>Verify the build is green before deploying.</p>
+          <pre style="font-family: var(--mono); background: var(--bg-elevated); padding: 1rem; border-radius: 6px; border: 1px solid var(--border); margin-top: 0.8rem; overflow-x: auto; color: var(--primary-bright);"><code>sui move test                          # 38/38
+npx tsx --test src/__tests__/*.test.ts # 12/12</code></pre>
+        </div>
+        <div class="card">
+          <div class="step">COMMAND 2</div>
+          <h3>Publish</h3>
+          <p>Build and publish the Move package to Sui. The script captures the new
+            <code>PACKAGE_ID</code> and writes it to <code>sdk/src/constants.ts</code>
+            and <code>orchestrator/.env</code>.</p>
+          <pre style="font-family: var(--mono); background: var(--bg-elevated); padding: 1rem; border-radius: 6px; border: 1px solid var(--border); margin-top: 0.8rem; overflow-x: auto; color: var(--primary-bright);"><code>./scripts/publish.sh --network testnet</code></pre>
+        </div>
+        <div class="card">
+          <div class="step">COMMAND 3</div>
+          <h3>Initialize the agent</h3>
+          <p>One PTB: create treasury, create agent, mint 3 caps, transfer all to the
+            active address. The script captures agent + treasury ids back to
+            <code>.env</code>.</p>
+          <pre style="font-family: var(--mono); background: var(--bg-elevated); padding: 1rem; border-radius: 6px; border: 1px solid var(--border); margin-top: 0.8rem; overflow-x: auto; color: var(--primary-bright);"><code>./scripts/init-agent.sh \
+  --name agent-alpha \
+  --strategy mean-reversion</code></pre>
+        </div>
+        <div class="card">
+          <div class="step">COMMAND 4</div>
+          <h3>Run the demo</h3>
+          <p>Watch a 14-cycle orchestrator run with a moving market. Each line is a real
+            <code>Decision</code> from the on-chain-style state machine.</p>
+          <pre style="font-family: var(--mono); background: var(--bg-elevated); padding: 1rem; border-radius: 6px; border: 1px solid var(--border); margin-top: 0.8rem; overflow-x: auto; color: var(--primary-bright);"><code>npx tsx scripts/demo-cycle.mts --n 14</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./chrome.js"></script>
+</body>
+</html>

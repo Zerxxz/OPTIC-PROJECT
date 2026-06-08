@@ -3,8 +3,20 @@ routes:
     file: index.html
   - path: /index.html
     file: index.html
+  - path: /how.html
+    file: how.html
+  - path: /decisions.html
+    file: decisions.html
+  - path: /agents.html
+    file: agents.html
+  - path: /tracks.html
+    file: tracks.html
+  - path: /links.html
+    file: links.html
   - path: /app.js
     file: app.js
+  - path: /chrome.js
+    file: chrome.js
   - path: /decisions.js
     file: decisions.js
   - path: /style.css
