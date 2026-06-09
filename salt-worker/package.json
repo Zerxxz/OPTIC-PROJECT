@@ -1,0 +1,12 @@
+{
+  "name": "optic-salt",
+  "version": "0.1.0",
+  "description": "OPTIC zkLogin salt service (Cloudflare Worker)",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  }
+}

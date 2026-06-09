@@ -12,4 +12,13 @@ export { Treasury } from './treasury.js';
 export { WalrusAudit } from './walrus.js';
 export { DeepBookClient } from './deepbook.js';
 export { PredictClient } from './predict.js';
+export {
+  configureZkLogin,
+  loadSession,
+  saveSession,
+  clearSession,
+  connectZkLogin,
+  signTransactionWithZkLogin,
+} from './zklogin.js';
+export type { ZkLoginConfig, ZkLoginSession } from './zklogin.js';
 export * from './types.js';

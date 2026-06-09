@@ -1,0 +1,14 @@
+name = "optic-salt"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+
+# Set a strong secret BEFORE deploying:
+#   wrangler secret put SALT_SECRET
+# The value must be a 32+ character random string. Anyone with the secret
+# can derive the salt for any Google user; treat it as a credential.
+#
+# Until SALT_SECRET is set, the worker uses a hardcoded dev fallback —
+# do NOT run that on a public URL.
+
+[observability]
+enabled = true
