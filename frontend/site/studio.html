@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OPTIC · Strategy Studio</title>
+  <meta name="description" content="Generate a verifiable on-chain AI quant strategy from a natural-language prompt." />
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%236fbfff'/><stop offset='1' stop-color='%2300d4ff'/></linearGradient></defs><path d='M50 8 C30 38 18 55 18 70 a32 32 0 0 0 64 0 C82 55 70 38 50 8z' fill='url(%23g)'/><circle cx='50' cy='70' r='14' fill='%23001a2c'/></svg>" />
+</head>
+<body data-page="studio">
+  <main>
+    <section class="hero compact">
+      <div class="hero-inner">
+        <p class="kicker">LLM → Walrus blob → on-chain SHA-256</p>
+        <h1>Strategy <span class="gradient">Studio</span></h1>
+        <p class="lede">
+          Describe a quant strategy in plain English. OPTIC translates it into a deterministic
+          JSON spec, uploads it to Walrus, and anchors its <strong>sha256</strong> hash on-chain.
+          Once committed, the strategy runs without the LLM — the on-chain hash is the source of truth.
+        </p>
+      </div>
+    </section>
+
+    <section class="studio">
+      <div class="grid two studio-grid">
+        <div class="card studio-prompt">
+          <h3>1. Prompt</h3>
+          <p class="muted">Tell the model what you want.</p>
+          <textarea id="prompt-input" rows="8" placeholder="e.g. Aggressive momentum strategy on SUI/USDC: ride 1-minute breakouts with 3% position sizing, 5% stop loss, 10% take profit. Hedge with a 2% NO position on DeepBook Predict when realized vol exceeds 12%."></textarea>
+          <div class="row">
+            <label>Default market</label>
+            <select id="default-market">
+              <option value="SUI/USDC">SUI / USDC</option>
+              <option value="DEEP/USDC">DEEP / USDC</option>
+              <option value="WAL/USDC">WAL / USDC</option>
+              <option value="BTC/USDC">BTC / USDC</option>
+            </select>
+            <label>Model</label>
+            <select id="model">
+              <option value="openrouter/auto">Auto (OpenRouter)</option>
+              <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+              <option value="openai/gpt-4o">GPT-4o</option>
+              <option value="google/gemini-pro-1.5">Gemini 1.5 Pro</option>
+            </select>
+          </div>
+          <button id="generate-btn" class="cta primary">Generate spec</button>
+          <p id="generate-status" class="muted small"></p>
+        </div>
+
+        <div class="card studio-output">
+          <h3>2. Generated spec</h3>
+          <p class="muted">The deterministic JSON the agent will run on.</p>
+          <pre id="spec-output" class="codeblock">// Click "Generate spec" to start.</pre>
+          <div id="hash-row" class="row" style="display:none;">
+            <label>SHA-256</label>
+            <code id="hash-output" class="mono"></code>
+          </div>
+          <div id="blob-row" class="row" style="display:none;">
+            <label>Walrus blob</label>
+            <code id="blob-output" class="mono"></code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="how">
+      <h2>How it works</h2>
+      <ol class="steps">
+        <li>
+          <strong>Prompt → JSON.</strong> OPTIC's LLM (via OpenRouter) returns a
+          canonical <code>StrategySpec</code> validated against a Zod schema. The
+          model can refuse, but it cannot lie about the schema.
+        </li>
+        <li>
+          <strong>JSON → sha256.</strong> The spec is sorted-keyed and serialized
+          deterministically. The sha256 is the on-chain identity of the strategy.
+        </li>
+        <li>
+          <strong>JSON → Walrus.</strong> The full spec is uploaded to Walrus as a
+          blob; the blob ID is returned and linked from the on-chain <code>StrategyRef</code>.
+        </li>
+        <li>
+          <strong>Commit on-chain.</strong> A <code>core::update_strategy_hash</code>
+          PTB anchors the new hash + blob ID on the Agent object. From that moment
+          on, the <em>Move contract</em> refuses to act on any strategy whose hash
+          does not match the committed one.
+        </li>
+        <li>
+          <strong>No LLM on the hot path.</strong> The orchestrator reads the spec
+          from Walrus (or a local cache) and runs it deterministically. LLM is
+          only used to translate intent.
+        </li>
+      </ol>
+    </section>
+
+    <section class="why">
+      <h2>Why this matters</h2>
+      <div class="grid two">
+        <div class="card">
+          <h3>🛡️ Trustless AI</h3>
+          <p>The "AI" part is auditable: anyone can read the spec from Walrus, re-run
+            it, and verify the hash matches what's on-chain. No trust required.</p>
+        </div>
+        <div class="card">
+          <h3>🪪 Verifiable lineage</h3>
+          <p>Every <code>StrategyHashChanged</code> event is emitted on-chain with
+            old/new hashes. The full history of "what the agent was doing" is
+            queryable from chain data alone.</p>
+        </div>
+        <div class="card">
+          <h3>🧪 Backtestable</h3>
+          <p>Because the spec is deterministic, you can re-run it against historical
+            DeepBook fills and reproduce the exact PnL curve — perfect for the
+            Backtest Harness.</p>
+        </div>
+        <div class="card">
+          <h3>🛒 Tradeable IP</h3>
+          <p>Wrap the strategy blob in a Sui Kiosk item, list it on the marketplace,
+            and earn royalties every time someone forks your strategy.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./studio.js"></script>
+  <script type="module" src="./chrome.js"></script>
+</body>
+</html>

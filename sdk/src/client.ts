@@ -10,6 +10,10 @@ import type { Keypair } from '@mysten/sui/cryptography';
 import { Transaction } from '@mysten/sui/transactions';
 import type { Network, ObjectId, Address, Agent, AgentConfig, AgentCap, CapRole } from './types.js';
 import { PACKAGE_ID, RPC_URLS } from './constants.js';
+import { DeepBookClient } from './deepbook.js';
+import { PredictClient } from './predict.js';
+import { WalrusAudit } from './walrus.js';
+import { Treasury as TreasuryClient } from './treasury.js';
 
 export interface OpticClientOptions {
   network: Network;
@@ -22,12 +26,38 @@ export class OpticClient {
   readonly network: Network;
   readonly packageId: string;
   readonly signer: Keypair;
+  readonly deepbook: DeepBookClient;
+  readonly predict: PredictClient;
+  readonly walrus: WalrusAudit | null;
+  readonly treasury: TreasuryClient | null;
 
   constructor(opts: OpticClientOptions) {
     this.network = opts.network;
     this.packageId = opts.packageId ?? PACKAGE_ID;
     this.signer = opts.signer;
     this.sui = new SuiClient({ url: RPC_URLS[opts.network] });
+    this.deepbook = new DeepBookClient(this);
+    this.predict = new PredictClient(this);
+    this.walrus = null; // set lazily via forAgent()
+    this.treasury = null; // set lazily via forTreasury()
+  }
+
+  /**
+   * Bind a Walrus audit context to a specific agent. All subsequent
+   * `walrus.upload(...)` calls anchor the blob as a StrategyRef for that agent.
+   */
+  forAgent(agentId: ObjectId): WalrusAudit {
+    this.walrus = new WalrusAudit(this, agentId);
+    return this.walrus;
+  }
+
+  /**
+   * Bind a Treasury wrapper to a specific coin type. The treasury must
+   * already exist on-chain.
+   */
+  forTreasury(treasuryId: ObjectId, coinType: string): TreasuryClient {
+    this.treasury = new TreasuryClient(this, treasuryId, coinType);
+    return this.treasury;
   }
 
   /**

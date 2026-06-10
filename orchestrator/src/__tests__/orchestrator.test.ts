@@ -175,3 +175,180 @@ test('Orchestrator: rejects pause then resume flow', async () => {
   assert.ok(executed.length <= 1);
   void status;
 });
+
+// =============================================================================
+// Live mode tests
+// =============================================================================
+
+import { ExecutorAgent } from '../agents/executor.js';
+
+test('ExecutorAgent (synth): pass-through no-op', () => {
+  const ex = new ExecutorAgent('synth');
+  const merged = {
+    agent: 'quant' as const,
+    action: { kind: 'no_op' as const, reason: 'no signal' },
+    reasoning: 'no signal',
+    confidenceBps: 0,
+    atMs: 0,
+  };
+  const d = ex.decide(merged, TEST_STATE, { state: TEST_STATE, market: QUIET_MARKET, capId: '0xCAP' });
+  assert.equal(d.action.kind, 'no_op');
+  assert.equal(d.reason, undefined); // Decision has no top-level reason
+  assert.equal(d.action.kind === 'no_op' ? d.action.reason : '', 'executor delegates to orchestrator.dispatch');
+});
+
+test('ExecutorAgent (live): vetoes when agent not active', () => {
+  const ex = new ExecutorAgent('live');
+  const merged = {
+    agent: 'quant' as const,
+    action: {
+      kind: 'place_order' as const,
+      side: 0 as const,
+      orderType: 0 as const,
+      baseAsset: 'SUI',
+      quoteAsset: 'USDC',
+      price: 1_500_000n,
+      size: 1_000_000n,
+    },
+    reasoning: 'try',
+    confidenceBps: 5_000,
+    atMs: 0,
+  };
+  const d = ex.decide(merged, { ...TEST_STATE, status: 'paused' }, {
+    state: { ...TEST_STATE, status: 'paused' },
+    market: QUIET_MARKET,
+    capId: '0xCAP',
+    deepbookPool: { poolId: '0xPOOL', baseCoinType: '0x2::sui::SUI', quoteCoinType: '0x...::usdc::USDC' },
+  });
+  assert.equal(d.action.kind, 'no_op');
+  if (d.action.kind === 'no_op') {
+    assert.match(d.action.reason, /agent not active/);
+  }
+});
+
+test('ExecutorAgent (live): vetoes when cap not bound', () => {
+  const ex = new ExecutorAgent('live');
+  const merged = {
+    agent: 'quant' as const,
+    action: {
+      kind: 'place_order' as const,
+      side: 0 as const,
+      orderType: 0 as const,
+      baseAsset: 'SUI',
+      quoteAsset: 'USDC',
+      price: 1_500_000n,
+      size: 1_000_000n,
+    },
+    reasoning: 'try',
+    confidenceBps: 5_000,
+    atMs: 0,
+  };
+  const d = ex.decide(merged, TEST_STATE, {
+    state: TEST_STATE,
+    market: QUIET_MARKET,
+    capId: '0xCAP_EXEC', // sentinel from defaults → not bound
+    deepbookPool: { poolId: '0xPOOL', baseCoinType: '0x2::sui::SUI', quoteCoinType: '0x...::usdc::USDC' },
+  });
+  assert.equal(d.action.kind, 'no_op');
+  if (d.action.kind === 'no_op') {
+    assert.match(d.action.reason, /cap id not bound/);
+  }
+});
+
+test('ExecutorAgent (live): vetoes place_order without pool config', () => {
+  const ex = new ExecutorAgent('live');
+  const merged = {
+    agent: 'quant' as const,
+    action: {
+      kind: 'place_order' as const,
+      side: 0 as const,
+      orderType: 0 as const,
+      baseAsset: 'SUI',
+      quoteAsset: 'USDC',
+      price: 1_500_000n,
+      size: 1_000_000n,
+    },
+    reasoning: 'try',
+    confidenceBps: 5_000,
+    atMs: 0,
+  };
+  const d = ex.decide(merged, TEST_STATE, {
+    state: TEST_STATE,
+    market: QUIET_MARKET,
+    capId: '0xCAP_REAL',
+    // no deepbookPool
+  });
+  assert.equal(d.action.kind, 'no_op');
+  if (d.action.kind === 'no_op') {
+    assert.match(d.action.reason, /requires deepbookPool/);
+  }
+});
+
+test('ExecutorAgent (live): approves well-formed place_order', () => {
+  const ex = new ExecutorAgent('live');
+  const merged = {
+    agent: 'quant' as const,
+    action: {
+      kind: 'place_order' as const,
+      side: 0 as const,
+      orderType: 0 as const,
+      baseAsset: 'SUI',
+      quoteAsset: 'USDC',
+      price: 1_500_000n,
+      size: 1_000_000n,
+    },
+    reasoning: 'good',
+    confidenceBps: 5_000,
+    atMs: 0,
+  };
+  const d = ex.decide(merged, TEST_STATE, {
+    state: TEST_STATE,
+    market: QUIET_MARKET,
+    capId: '0xCAP_REAL',
+    deepbookPool: { poolId: '0xPOOL', baseCoinType: '0x2::sui::SUI', quoteCoinType: '0x...::usdc::USDC' },
+  });
+  assert.equal(d, merged, 'live executor should pass through a well-formed place_order');
+});
+
+test('Orchestrator (live): executor veto blocks dispatch', async () => {
+  const events: OrchestratorEvent[] = [];
+  // Mock OpticClient that would NPE if dispatch was attempted.
+  const fakeOptic = {
+    tx: () => { throw new Error('tx() called on a vetoed cycle'); },
+    deepbook: { buildPlaceOrderTx: () => { throw new Error('should not be called'); } },
+    predict: { buildOpenHedgeTx: () => { throw new Error('should not be called'); } },
+    pauseCall: () => { throw new Error('should not be called'); },
+    signAndExecute: async () => { throw new Error('should not be called'); },
+  };
+  const o = new Orchestrator({
+    optic: fakeOptic as never,
+    mode: 'live',
+    fetchState: async () => TEST_STATE,
+    fetchMarket: async () => VOLATILE_MARKET,
+    executorCapId: '0xCAP_EXEC', // sentinel → executor will veto
+    deepbookPool: { poolId: '0xPOOL', baseCoinType: '0x2::sui::SUI', quoteCoinType: '0x...::usdc::USDC' },
+    onEvent: (e) => { events.push(e); },
+  });
+  o.withQuant(new QuantAgent(marketMakingStrategy()));
+  o.withRisk(new RiskAgent({ ...DEFAULT_RISK_CONFIG, highVolBps: 10_000 })); // no hedge
+  const evs = await o.runCycle();
+  const rejected = evs.find((e) => e.kind === 'decision_rejected');
+  assert.ok(rejected !== undefined, 'expected a decision_rejected event');
+  assert.match(rejected!.reason, /executor veto/);
+  const executed = evs.find((e) => e.kind === 'decision_executed');
+  assert.equal(executed, undefined, 'nothing should have been dispatched');
+});
+
+test('Orchestrator: cycles and sequence counters advance', async () => {
+  const o = new Orchestrator({
+    optic: {} as never,
+    fetchState: async () => TEST_STATE,
+    fetchMarket: async () => QUIET_MARKET,
+  });
+  assert.equal(o.cycles, 0);
+  assert.equal(o.sequence, 0);
+  await o.runCycle();
+  assert.equal(o.cycles, 1);
+  await o.runCycle();
+  assert.equal(o.cycles, 2);
+});

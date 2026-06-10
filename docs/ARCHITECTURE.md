@@ -1,4 +1,14 @@
-# OPTIC · Architecture
+# OPTIC · Architecture (v0.2.0)
+
+## What's new in v0.2.0
+
+- **Real DeepBook V3 PTB execution** — orchestrator now composes, signs, and submits real `place_limit_order` / `open_hedge` PTBs to Sui (was: synthetic digests).
+- **Proper executor veto logic** — the Executor agent is no longer a no-op; in `live` mode it re-validates and can block dispatch.
+- **Strategy Studio** — LLM-powered strategy generator. User types a natural-language prompt; OPTIC calls OpenRouter, validates the response against a Zod schema, and anchors the resulting StrategySpec on-chain.
+- **OPTIC Leaderboard** — on-chain ranking of all agents by Sharpe / PnL / volume, recomputable by anyone.
+- **Strategy NFT** — strategies are now mintable as `StrategyNFT` objects that can be listed on Sui Kiosk with author royalties.
+- **Verifiable Backtest Harness** — `BacktestRun` + `BacktestResult` Move objects attest strategy + fills hash + Sharpe + max drawdown.
+- **Agent Squads (DAO)** — multiple agents share a Treasury and vote on every cycle, weighted by their rolling Sharpe.
 
 ## Data flow
 
@@ -48,6 +58,24 @@
    │   │   - decision_id, agent, action, reasoning             │  │
    │   │   - walrus_blob_id, sequence, at_ms                   │  │
    │   └──────────────────────────────────────────────────────┘  │
+   │                                                             │
+   │   ┌──────────────────────────────────────────────────────┐  │
+   │   │   strategy_nft (NEW)                                   │  │
+   │   │   StrategyNFT + StrategyNFTRegistry                   │  │
+   │   │   place+list in Sui Kiosk, royalty_bps                │  │
+   │   └──────────────────────────────────────────────────────┘  │
+   │                                                             │
+   │   ┌──────────────────────────────────────────────────────┐  │
+   │   │   backtest (NEW)                                       │  │
+   │   │   BacktestRun + BacktestResult                         │  │
+   │   │   input/output attested, all on-chain                 │  │
+   │   └──────────────────────────────────────────────────────┘  │
+   │                                                             │
+   │   ┌──────────────────────────────────────────────────────┐  │
+   │   │   squad (NEW)                                          │  │
+   │   │   Squad + Proposal — multi-agent weighted voting      │  │
+   │   │   Sharpe-weighted, quorum + threshold                 │  │
+   │   └──────────────────────────────────────────────────────┘  │
    └─────────────────────────────────────────────────────────────┘
                                          │
                                          ▼
@@ -55,7 +83,8 @@
                               │  Walrus (Site)       │
                               │  optic.sui/          │
                               │    index.html        │
-                              │    app.js            │
+                              │    studio.html       │
+                              │    leaderboard.html  │
                               │    decisions.json    │
                               └──────────┬───────────┘
                                          │ rendered by
@@ -64,6 +93,8 @@
                               │  Browser             │
                               │  zkLogin → owner     │
                               │  sees live decisions │
+                              │  + leaderboard       │
+                              │  + studio            │
                               └──────────────────────┘
 ```
 
@@ -79,8 +110,9 @@
        │   4. risk.decide()    — propose hedge / pause    │
        │   5. mergeDecisions() — risk veto, pick highest  │
        │   6. validate()       — defence in depth         │
-       │   7. dispatch()       — build PTB, sign, submit  │
-       │   8. log()            — emit AuditEntry to Walrus│
+       │   7. executor.decide() — re-check + veto (live)   │
+       │   8. dispatch()       — build PTB, sign, submit  │
+       │   9. log()              — emit AuditEntry on Walrus│
        └──────────────────────────────────────────────────┘
               ▲                ▲                  ▲
               │                │                  │
@@ -89,7 +121,7 @@
         │            │  │             │  │                │
         │ strategy:  │  │ - vol gate  │  │ - re-validates │
         │ - mean-    │  │ - loss gate │  │ - composes PTB │
-        │   reversion│  │ - exposure  │  │ - batch+sign   │
+        │   reversion│  │ - exposure  │  │                │
         │ - momentum │  │             │  │                │
         │ - market-  │  │ proposes:   │  │                │
         │   making   │  │ - pause     │  │                │
@@ -100,43 +132,29 @@
         └────────────┘  └─────────────┘  └────────────────┘
 ```
 
-## Decision lifecycle (1 cycle = ~3 s)
+## Modes
 
-```
-  ┌────────────┐
-  │  tick      │  every N seconds (configurable; default 30)
-  └─────┬──────┘
-        ▼
-  fetchState()         ← reads on-chain Agent + PnL + Treasury
-        │
-        ▼
-  fetchMarket()        ← reads DeepBook orderbook (off-chain indexer)
-        │
-        ▼
-  quant.decide()       ← evaluates strategy → Decision{place_order|no_op}
-        │
-        ▼
-  risk.decide()        ← evaluates risk gates → Decision{pause|open_hedge|no_op}
-        │
-        ▼
-  mergeDecisions()     ← risk veto, else pick highest-confidence
-        │
-        ▼
-  validate()           ← defence in depth (sizes, prices, exposure)
-        │
-        ├── fail → emit decision_rejected, log to Walrus
-        │
-        ▼
-  dispatch()           ← build PTB, sign, submit to Sui
-        │
-        ├── tx fail → emit decision_rejected, log to Walrus
-        │
-        ▼
-  emit AuditEntry      ← on-chain object + Walrus blob with full reasoning
-        │
-        ▼
-  update PnL object    ← realised_pnl += signed(pnl_of_this_trade)
-```
+- `'synth'` (default for tests): `dispatch()` returns a synthetic digest. Used by the 19/19 orchestrator tests.
+- `'live'`: `dispatch()` composes a real PTB via `OpticClient.deepbook.buildPlaceOrderTx()` or `OpticClient.predict.buildOpenHedgeTx()`, signs with the executor cap, and submits to Sui. The executor vetoes any cycle that lacks a real cap, pool config, or violates risk params.
+
+## Strategy Studio (LLM → on-chain)
+
+1. User opens `optic.sui/studio.html` in a browser.
+2. Types a natural-language prompt.
+3. Front-end calls OpenRouter (`https://openrouter.ai/api/v1/chat/completions`) with the canonical `StrategySpec` schema.
+4. Response is validated against the Zod schema.
+5. SHA-256 is computed over the canonical JSON.
+6. The spec is uploaded to Walrus → blob_id is returned.
+7. A `core::update_strategy_hash` PTB anchors the new hash on the Agent.
+8. The orchestrator (next tick) reads the spec from Walrus and runs it deterministically — no LLM in the hot path.
+
+## Squad voting
+
+For each cycle, a `Proposal` is opened on a `Squad`:
+1. Member weights (= Sharpe × 10000) are snapshotted.
+2. Each member agent casts a vote (yes/no) — the vote weight is the snapshot weight.
+3. `weighted_yes` / `weighted_total` ≥ `pass_threshold_bps` AND `cast` / `total_weight` ≥ `quorum_bps` → PASS.
+4. The passed proposal authorizes a single action (place_order, open_hedge, pause, or no_op).
 
 ## Module dependency graph
 
@@ -158,9 +176,22 @@ walrus_adapter     ←────┤
   StrategyRef           │
   AuditEntry            │
                         │
-predict_adapter    ←────┘
-  PredictHedge
+predict_adapter    ←────┤
+  PredictHedge          │
+                        │
+strategy_nft       ←─────┤  (NEW)
+  StrategyNFT            │
+  StrategyNFTRegistry    │
+                        │
+backtest           ←─────┤  (NEW)
+  BacktestRun            │
+  BacktestResult          │
+                        │
+squad              ←─────┘  (NEW)
+  Squad
+  Proposal
 ```
 
 Zero external Move dependencies. The DeepBook V3 and Walrus SDKs are called from
-TypeScript off-chain; the Move contracts just store the canonical types.
+TypeScript off-chain; the Move contracts just store the canonical types and
+implement on-chain accounting + audit.

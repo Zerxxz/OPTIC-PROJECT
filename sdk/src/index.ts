@@ -21,4 +21,15 @@ export {
   signTransactionWithZkLogin,
 } from './zklogin.js';
 export type { ZkLoginConfig, ZkLoginSession } from './zklogin.js';
+export {
+  generateStrategySpec,
+  commitStrategy,
+  canonicalJson,
+  OpenRouterClient,
+  StrategySpecSchema,
+  StrategyKind,
+} from './strategy-studio.js';
+export type { StrategySpec, LLMClient, GenerateOpts, GenerateResult, CommitOpts, CommitResult } from './strategy-studio.js';
+export { computeLeaderboard } from './leaderboard.js';
+export type { Leaderboard, LeaderboardEntry, LeaderboardOpts } from './leaderboard.js';
 export * from './types.js';

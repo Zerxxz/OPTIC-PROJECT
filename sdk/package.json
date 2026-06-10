@@ -15,7 +15,8 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@mysten/sui": "1.45.0"
+    "@mysten/sui": "1.45.0",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

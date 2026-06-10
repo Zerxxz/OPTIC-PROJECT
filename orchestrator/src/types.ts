@@ -91,6 +91,18 @@ export type OrchestratorEvent =
   | { kind: 'decision_executed'; decision: Decision; txDigest: string }
   | { kind: 'cycle_completed'; atMs: number; actionsExecuted: number };
 
+/// ExecutorContext — passed to ExecutorAgent.decide() in 'live' mode
+/// so the executor can build a real PTB using the cap it holds and the
+/// on-chain pool it routes through.
+export interface ExecutorContext {
+  state: AgentState;
+  market: MarketState;
+  capId: ObjectId;
+  executorAddress?: Address;
+  deepbookPool?: { poolId: ObjectId; baseCoinType: string; quoteCoinType: string };
+  treasuryCoinType?: string;
+}
+
 /// Re-export Agent (sdk) for convenience
 export type Agent = import('@optic/sdk').Agent;
 export type { Address, ObjectId };

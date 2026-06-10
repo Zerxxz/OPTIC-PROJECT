@@ -3,7 +3,8 @@
 > Copy/paste-ready text for the overflow.sui.io submission form.
 > Repo: https://github.com/Zerxxz/OPTIC-PROJECT
 > License: Apache-2.0
-> Submission date: 2026-06-08
+> Submission date: 2026-06-10
+> Version: v0.2.0
 
 ---
 
@@ -29,6 +30,18 @@ decision (Quant → Risk → Executor) is logged as a `walrus_adapter::AuditEntr
 on-chain, and the demo site itself is hosted on Walrus Sites — no AWS, no
 private server.
 
+**v0.2.0 highlights.** The orchestrator now executes **real DeepBook V3 PTBs**
+(`place_limit_order` / `open_hedge`) via the executor cap, not synthetic digests.
+The **Strategy Studio** (a new Walrus Site page) lets a user describe a
+strategy in natural language — the LLM produces a canonical JSON spec, which
+is validated, hashed, and anchored on-chain. The **OPTIC Leaderboard** ranks
+every agent on-chain by Sharpe / PnL / volume and is recomputable by anyone.
+Strategies can be minted as **StrategyNFT** objects and traded on Sui Kiosk
+with author royalties. A **Verifiable Backtest Harness** (`BacktestRun` +
+`BacktestResult` Move objects) lets anyone reproduce a strategy's historical
+PnL on-chain. **Agent Squads** let N agents share a Treasury and vote on every
+cycle, weighted by their rolling Sharpe.
+
 **What it does.** The owner uploads a strategy blob to Walrus, the orchestrator
 runs a 3-agent decision loop every tick, and the resulting trades are gated by
 three independent `core::AgentCap` objects (`quant`, `risk`, `executor`). The
@@ -37,22 +50,21 @@ realized vol crosses a threshold, the `RiskAgent` opens a **DeepBook Predict**
 `NO` hedge at 5% OTM with 24h expiry, sized at 1% of treasury — turning a
 single-agent quant into a spot + derivatives flow.
 
-**What's on-chain.** Five Move modules in `contracts/optic/`: `core` (Agent,
-AgentCap, AuditEntry, Registry), `treasury` (Treasury<T> with risk circuit),
-`deepbook_adapter` (OrderRequest, TradeRecord), `walrus_adapter` (StrategyRef,
-on-chain audit anchor), `predict_adapter` (PredictHedge). 38/38 Move unit tests
-pass on Sui framework `9eaf47af2`. The off-chain TypeScript orchestrator in
-`orchestrator/` has 12/12 integration tests covering paused agents, empty
-treasuries, daily-loss circuits, vol-spike hedges, and size-cap rejections.
+**What's on-chain.** Eight Move modules in `contracts/optic/`: `core`,
+`treasury`, `deepbook_adapter`, `walrus_adapter`, `predict_adapter`,
+`strategy_nft`, `backtest`, `squad`. 60/60 Move unit tests pass on Sui framework
+`9eaf47af2`. The off-chain TypeScript orchestrator in `orchestrator/` has
+19/19 integration tests covering synth + live modes, paused agents, empty
+treasuries, daily-loss circuits, vol-spike hedges, and executor veto logic.
 
 **Why it's not a chat bot.** A chat bot is `prompt → LLM → action`. OPTIC is
 deterministic strategies (mean-reversion, momentum, market-making) running
 through a multi-agent state machine with risk veto, on-chain commitment, and
-public audit. Any LLM sits **outside** the hot path — only used to translate
-natural-language strategy descriptions into a strategy blob.
+public audit. The LLM is used only at strategy-intent time; once the spec is
+committed, the agent runs without it.
 
 **Stack.** Move · Sui object model · DeepBook V3 (CLOB + Predict) · Walrus
-(blob + Site + Kiosk) · zkLogin · SuiNS · Sui Kiosk.
+(blob + Site + Kiosk) · zkLogin · SuiNS · Sui Kiosk · OpenRouter (LLM).
 
 **Track alignment.** One project, four tracks: Agentic Web (core, $30K), DeFi
 & Payments (core, $30K), DeepBook (specialized, $70K), Walrus (specialized,

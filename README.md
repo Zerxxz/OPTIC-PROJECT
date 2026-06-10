@@ -122,9 +122,11 @@ cat orchestrator/.env
 
 | Suite | Status |
 |---|---|
-| Move unit tests (`sui move test`) | **38 / 38** ✅ |
-| Orchestrator integration tests | **12 / 12** ✅ |
-| Walrus Site (browser) | renders + filters + zkLogin stub ✅ |
+| Move unit tests (`sui move test`) | **60 / 60** ✅ (5 original + 3 new modules) |
+| Orchestrator integration tests | **19 / 19** ✅ (12 original + 7 new) |
+| SDK strategy-studio tests | **12 / 12** ✅ |
+| SDK leaderboard tests | **8 / 8** ✅ |
+| Walrus Site (browser) | renders + filters + zkLogin + Studio + Leaderboard ✅ |
 
 ---
 
