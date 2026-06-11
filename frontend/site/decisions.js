@@ -1,25 +1,77 @@
-// OPTIC — Live decision-log reader (self-initializing ES module).
-// In production this fetches the audit log the orchestrator publishes
-// to a Walrus Site endpoint, or reads Sui events via @mysten/sui JSON-RPC.
-// For the demo it falls back to a deterministic mock dataset that mirrors
-// what runCycle() emits.
+// ============================================================================
+// OPTIC — Decision log reader (ES module)
+// In production this reads Sui events via @mysten/sui JSON-RPC, or fetches a
+// JSON blob published to the Walrus Site. For the demo we ship a deterministic
+// mock dataset that mirrors what the orchestrator emits in runCycle().
+// ============================================================================
 
-const WALRUS_BASE = 'https://walrus.site/optic'; // placeholder
+const WALRUS_BASE = 'https://walrus.site/optic'; // swap at deploy time
 
-const MOCK_DECISIONS = [
-  { id: '0xAUDIT_001', agent: 'quant',    action: 'place_order', side: 0,    confidenceBps: 6200, reason: 'mean-reversion-v1: spread=420bps, fair=1_500_000, side=BUY @ 1_500_500', atMs: Date.now() - 1000 * 60 * 2,  pnlAfter: 12_500_000n },
-  { id: '0xAUDIT_002', agent: 'risk',     action: 'no_op',       side: null, confidenceBps: 0,    reason: 'vol 320bps within risk budget (<=800bps), no action',                 atMs: Date.now() - 1000 * 60 * 3,  pnlAfter: 12_500_000n },
-  { id: '0xAUDIT_003', agent: 'executor', action: 'place_order', side: 1,    confidenceBps: 4800, reason: 'market-making-v1 tick=14: SELL @ 1_500_750, size=4_000_000',           atMs: Date.now() - 1000 * 60 * 7,  pnlAfter: 9_800_000n  },
-  { id: '0xAUDIT_004', agent: 'risk',     action: 'open_hedge',  side: 1,    confidenceBps: 9000, reason: 'vol 1240bps > 800bps -> open NO hedge size=100_000_000 strike=1_425_000', atMs: Date.now() - 1000 * 60 * 14, pnlAfter: 9_800_000n  },
-  { id: '0xAUDIT_005', agent: 'quant',    action: 'no_op',       side: null, confidenceBps: 0,    reason: 'weak signal: confidence 4.20% < 10% threshold',                       atMs: Date.now() - 1000 * 60 * 19, pnlAfter: 9_800_000n  },
-  { id: '0xAUDIT_006', agent: 'executor', action: 'place_order', side: 0,    confidenceBps: 5300, reason: 'momentum-v1: ask near mid (delta=800) < bid delta=1200 -> BUY',        atMs: Date.now() - 1000 * 60 * 25, pnlAfter: 11_200_000n },
-  { id: '0xAUDIT_007', agent: 'risk',     action: 'pause',       side: null, confidenceBps: 10000,reason: 'daily loss circuit breaker: realized PnL = -52_000_000 < -50_000_000', atMs: Date.now() - 1000 * 60 * 32, pnlAfter: -52_000_000n },
-  { id: '0xAUDIT_008', agent: 'risk',     action: 'no_op',       side: null, confidenceBps: 0,    reason: 'agent status = paused',                                               atMs: Date.now() - 1000 * 60 * 33, pnlAfter: -52_000_000n },
-  { id: '0xAUDIT_009', agent: 'executor', action: 'no_op',       side: null, confidenceBps: 0,    reason: 'executor delegates to orchestrator.dispatch',                         atMs: Date.now() - 1000 * 60 * 40, pnlAfter: -52_000_000n },
-  { id: '0xAUDIT_010', agent: 'risk',     action: 'no_op',       side: null, confidenceBps: 0,    reason: 'vol 480bps within risk budget, treasury < $1, no hedge',              atMs: Date.now() - 1000 * 60 * 47, pnlAfter: -52_000_000n },
+export const MOCK_DECISIONS = [
+  {
+    id: '0xAUDIT_001', agent: 'quant', action: 'place_order', side: 0,
+    confidenceBps: 6200,
+    reason: 'mean-reversion-v1: spread=420bps, fair=1_500_000, side=BUY @ 1_500_500',
+    atMs: Date.now() - 1000 * 60 * 2, txDigest: 'synth-12-0-place_order',
+    pnlAfter: 12_500_000, blobId: 'walrus_blob_a3f2',
+  },
+  {
+    id: '0xAUDIT_002', agent: 'risk', action: 'no_op', side: null, confidenceBps: 0,
+    reason: 'vol 320bps within risk budget (≤800bps), no action',
+    atMs: Date.now() - 1000 * 60 * 3, txDigest: null,
+    pnlAfter: 12_500_000, blobId: 'walrus_blob_b7c1',
+  },
+  {
+    id: '0xAUDIT_003', agent: 'executor', action: 'place_order', side: 1, confidenceBps: 4800,
+    reason: 'market-making-v1 tick=14: SELL @ 1_500_750, size=4_000_000',
+    atMs: Date.now() - 1000 * 60 * 7, txDigest: '0xSYNTH_TX_FAKE_A1',
+    pnlAfter: 9_800_000, blobId: 'walrus_blob_c4d9',
+  },
+  {
+    id: '0xAUDIT_004', agent: 'risk', action: 'open_hedge', side: 1, confidenceBps: 9000,
+    reason: 'vol 1240bps > 800bps → open NO hedge size=100_000_000 strike=1_425_000',
+    atMs: Date.now() - 1000 * 60 * 14, txDigest: '0xSYNTH_HEDGE_K3',
+    pnlAfter: 9_800_000, blobId: 'walrus_blob_e8f0',
+  },
+  {
+    id: '0xAUDIT_005', agent: 'quant', action: 'no_op', side: null, confidenceBps: 0,
+    reason: 'weak signal: confidence 4.20% < 10% threshold',
+    atMs: Date.now() - 1000 * 60 * 19, txDigest: null,
+    pnlAfter: 9_800_000, blobId: 'walrus_blob_9120',
+  },
+  {
+    id: '0xAUDIT_006', agent: 'executor', action: 'place_order', side: 0, confidenceBps: 5300,
+    reason: 'momentum-v1: ask near mid (delta=800) < bid delta=1200 → BUY',
+    atMs: Date.now() - 1000 * 60 * 25, txDigest: '0xSYNTH_TX_FAKE_B7',
+    pnlAfter: 11_200_000, blobId: 'walrus_blob_3456',
+  },
+  {
+    id: '0xAUDIT_007', agent: 'risk', action: 'pause', side: null, confidenceBps: 10000,
+    reason: 'daily loss circuit breaker: realized PnL = -52_000_000 < -50_000_000',
+    atMs: Date.now() - 1000 * 60 * 32, txDigest: '0xSYNTH_PAUSE_X9',
+    pnlAfter: -52_000_000, blobId: 'walrus_blob_7890',
+  },
+  {
+    id: '0xAUDIT_008', agent: 'risk', action: 'no_op', side: null, confidenceBps: 0,
+    reason: 'agent status = paused',
+    atMs: Date.now() - 1000 * 60 * 33, txDigest: null,
+    pnlAfter: -52_000_000, blobId: 'walrus_blob_aaaa',
+  },
+  {
+    id: '0xAUDIT_009', agent: 'executor', action: 'no_op', side: null, confidenceBps: 0,
+    reason: 'executor delegates to orchestrator.dispatch',
+    atMs: Date.now() - 1000 * 60 * 40, txDigest: null,
+    pnlAfter: -52_000_000, blobId: 'walrus_blob_bbbb',
+  },
+  {
+    id: '0xAUDIT_010', agent: 'risk', action: 'no_op', side: null, confidenceBps: 0,
+    reason: 'vol 480bps within risk budget, treasury < $1, no hedge',
+    atMs: Date.now() - 1000 * 60 * 47, txDigest: null,
+    pnlAfter: -52_000_000, blobId: 'walrus_blob_cccc',
+  },
 ];
 
-async function fetchLiveDecisions() {
+export async function fetchLiveDecisions() {
   try {
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), 4000);
@@ -34,7 +86,7 @@ async function fetchLiveDecisions() {
   }
 }
 
-function applyFilters(decisions, filters) {
+export function applyFilters(decisions, filters) {
   return decisions.filter((d) => {
     if (filters.agent !== 'all' && d.agent !== filters.agent) return false;
     if (filters.action !== 'all' && d.action !== filters.action) return false;
@@ -42,34 +94,49 @@ function applyFilters(decisions, filters) {
   });
 }
 
-function renderDecisions(container, decisions) {
+export function renderDecisions(container, decisions) {
   if (!decisions.length) {
-    container.innerHTML = '<div class="decision placeholder">No decisions match the current filters.</div>';
+    container.innerHTML =
+      '<div class="decision placeholder">No decisions match the current filters.</div>';
     return;
   }
-  container.innerHTML = decisions.map((d) => {
-    const sideLabel = d.side === 0 ? 'BUY' : d.side === 1 ? 'SELL' : null;
-    const sideClass = d.side === 0 ? 'buy' : d.side === 1 ? 'sell' : '';
-    const conf = d.confidenceBps != null ? (d.confidenceBps / 100).toFixed(2) + '%' : '—';
-    const pnlText = d.pnlAfter != null ? formatUsd(d.pnlAfter) : '—';
-    const pnlClass = d.pnlAfter != null && Number(d.pnlAfter) < 0 ? 'neg' : 'pos';
-    return `
-      <div class="decision">
-        <span class="badge ${d.agent}">${esc(d.agent)}.sui</span>
-        <div class="body">
-          <div class="body-top">
-            <span class="badge ${d.action}">${esc(d.action)}</span>
-            ${sideLabel ? `<span class="badge ${sideClass}">${sideLabel}</span>` : ''}
+  container.innerHTML = decisions
+    .map((d, i) => {
+      const sideLabel = d.side === 0 ? 'BUY' : d.side === 1 ? 'SELL' : null;
+      const sideClass = d.side === 0 ? 'buy' : d.side === 1 ? 'sell' : '';
+      const pnl = d.pnlAfter != null ? formatUsd(d.pnlAfter) : '—';
+      const pnlClass = d.pnlAfter != null && Number(d.pnlAfter) < 0 ? 'neg' : 'pos';
+      const conf = d.confidenceBps != null ? (d.confidenceBps / 100).toFixed(2) + '%' : '—';
+      const ts = formatTimeAgo(d.atMs);
+      const tx = d.txDigest ? `· ${shorten(d.txDigest)}` : '';
+      return `
+      <article class="decision" style="animation-delay:${Math.min(i * 45, 400)}ms">
+        <div class="tags">
+          <span class="badge ${esc(d.agent)}">${esc(d.agent)}.sui</span>
+          <span class="badge act ${esc(d.action)}">${esc(d.action.replace('_', ' '))}</span>
+        </div>
+        <div class="dbody">
+          <div class="row1">
+            ${sideLabel ? `<span class="badge side ${sideClass}">${sideLabel}</span>` : ''}
             <span class="reason">${esc(d.reason)}</span>
           </div>
         </div>
-        <div class="meta">
-          <span class="conf">conf: ${conf}</span>
-          <span class="${pnlClass}">pnl: ${pnlText}</span>
-          <span class="ts">${formatTimeAgo(d.atMs)}</span>
+        <div class="dmeta">
+          <span class="conf">conf ${conf}</span>
+          <span class="${pnlClass}">pnl ${pnl}</span>
+          <span>${ts} ${tx}</span>
+          <span class="blob">${esc(d.blobId)}</span>
         </div>
-      </div>`;
-  }).join('');
+      </article>`;
+    })
+    .join('');
+}
+
+export function summarize(decisions) {
+  const orders = decisions.filter((d) => d.action === 'place_order').length;
+  const hedges = decisions.filter((d) => d.action === 'open_hedge').length;
+  const latestPnl = decisions.length ? decisions[0].pnlAfter : 0;
+  return { count: decisions.length, orders, hedges, latestPnl };
 }
 
 function formatUsd(microUsdc) {
@@ -86,6 +153,11 @@ function formatTimeAgo(ts) {
   return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
+function shorten(s) {
+  s = String(s);
+  return s.length > 14 ? `${s.slice(0, 8)}…${s.slice(-4)}` : s;
+}
+
 function esc(s) {
   return String(s)
     .replaceAll('&', '&amp;')
@@ -93,45 +165,3 @@ function esc(s) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;');
 }
-
-// ── Wire up the UI ──
-async function init() {
-  const container = document.getElementById('decisions');
-  if (!container) return;
-  const agentSel = document.getElementById('filter-agent');
-  const actionSel = document.getElementById('filter-action');
-  const refreshBtn = document.getElementById('refresh');
-  const sourceTag = document.getElementById('feed-source');
-
-  let all = [];
-
-  async function load() {
-    container.innerHTML = '<div class="decision placeholder">Loading decision log…</div>';
-    const live = await fetchLiveDecisions();
-    all = live ?? MOCK_DECISIONS;
-    if (sourceTag) sourceTag.textContent = live ? 'live (Walrus)' : 'mock data';
-    draw();
-  }
-
-  function draw() {
-    const filters = {
-      agent: agentSel ? agentSel.value : 'all',
-      action: actionSel ? actionSel.value : 'all',
-    };
-    renderDecisions(container, applyFilters(all, filters));
-  }
-
-  agentSel && agentSel.addEventListener('change', draw);
-  actionSel && actionSel.addEventListener('change', draw);
-  refreshBtn && refreshBtn.addEventListener('click', load);
-
-  await load();
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
-
-export { MOCK_DECISIONS, fetchLiveDecisions, applyFilters, renderDecisions };

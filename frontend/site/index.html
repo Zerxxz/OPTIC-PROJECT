@@ -4,170 +4,240 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OPTIC — On-chain Predictable Transparent Intelligence for Commerce</title>
-  <meta name="description" content="A verifiable, auditable AI quant agent for DeepBook. Strategy, decision log, and PnL are on-chain objects." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <meta name="description" content="A verifiable, auditable AI quant agent for DeepBook on Sui. Strategy hash, decision log, and PnL are all on-chain objects." />
+  <meta name="theme-color" content="#03070f" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2338e1ff'/%3E%3Cstop offset='1' stop-color='%234da2ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M16 2C9 9 6 13 6 19a10 10 0 0020 0c0-6-3-10-10-17z' fill='url(%23g)'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- NAV -->
-  <nav class="nav">
-    <a class="brand" href="#top"><span class="logo"></span> OPTIC <span class="suins-badge">optic.sui</span></a>
-    <div class="nav-links">
-      <a href="#problem">Why OPTIC</a>
-      <a href="#features">Features</a>
-      <a href="#decisions">Live decisions</a>
-      <a href="#tracks">Tracks</a>
-      <a href="#sui">Built for Sui</a>
-    </div>
-    <button id="connect" class="btn btn-primary">Connect Wallet</button>
-  </nav>
+  <div class="orb-layer" aria-hidden="true">
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="orb o3"></div>
+  </div>
 
-  <!-- HERO -->
-  <header id="top" class="hero wrap">
-    <span class="pill"><span class="dot"></span> Sui Overflow 2026 · Agentic Web · DeFi · DeepBook · Walrus</span>
-    <h1>Verifiable AI on a CLOB.<br /><span class="grad-text">Not a black box.</span></h1>
-    <p class="lede">OPTIC is a multi-agent trading system where the <strong>strategy</strong>, the <strong>decision log</strong>, and the <strong>PnL</strong> are all on-chain objects. Anyone can replay every decision, audit the risk gates, and see exactly why an order was placed — without trusting the operator.</p>
-    <div class="cta-row">
-      <a class="btn btn-primary" href="#decisions">View live decisions →</a>
-      <a class="btn btn-ghost" href="https://github.com/Zerxxz/OPTIC-PROJECT" target="_blank" rel="noopener">Source on GitHub</a>
-    </div>
-    <div class="stats">
-      <div><div class="num grad-text">60</div><div class="lbl">Move unit tests</div></div>
-      <div><div class="num grad-text">19</div><div class="lbl">Orchestrator tests</div></div>
-      <div><div class="num grad-text">5</div><div class="lbl">Move modules</div></div>
-      <div><div class="num grad-text">3</div><div class="lbl">Specialist agents</div></div>
+  <!-- ───── Top bar ───── -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#top">
+        <span class="logo" aria-hidden="true"></span>
+        <span class="brand-text">OPTIC</span>
+        <span class="suins">optic.sui</span>
+      </a>
+      <nav class="nav" id="nav">
+        <a href="#how">How it works</a>
+        <a href="#live">Live decisions</a>
+        <a href="#agents">Agents</a>
+        <a href="#tracks">Tracks</a>
+        <a href="#stack">Built for Sui</a>
+      </nav>
+      <div class="actions">
+        <button class="icon-btn" id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">🌙</button>
+        <button class="icon-btn menu-btn" id="menu-btn" title="Menu" aria-label="Menu">☰</button>
+        <button class="connect" id="connect"><span class="dot"></span><span class="txt">Connect</span></button>
+      </div>
     </div>
   </header>
 
-  <!-- PROBLEM / COMPARE -->
-  <section id="problem" class="wrap">
-    <div class="section-head">
-      <h2>Most "AI agents" are <span class="grad-text">black boxes</span></h2>
-      <p>A single key, a single prompt, an opaque trade history. OPTIC makes every decision auditable on-chain.</p>
-    </div>
-    <div class="compare">
-      <div class="compare-col bad">
-        <h3>🛑 The black-box problem</h3>
-        <ul>
-          <li>One key, one prompt — full custody risk on the operator</li>
-          <li>Trade history is opaque; you can't verify the strategy</li>
-          <li>No proof the agent followed its own risk rules</li>
-          <li>"Trust me" — no way to replay or audit decisions</li>
-        </ul>
+  <main id="top">
+    <!-- ───── Hero ───── -->
+    <section class="hero">
+      <div class="wrap hero-inner">
+        <span class="kicker">Sui Overflow 2026 · Agentic Web + DeFi + DeepBook + Walrus</span>
+        <h1>Verifiable AI on a CLOB.<br /><span class="gradient">Not a black box.</span></h1>
+        <p class="lede">
+          OPTIC is a multi-agent trading system where the <strong>strategy</strong>, the
+          <strong>decision log</strong>, and the <strong>PnL</strong> are all on-chain objects.
+          Anyone can replay every decision, audit the risk gates, and see exactly why an order was
+          placed — without trusting the operator.
+        </p>
+        <div class="cta-row">
+          <a class="cta primary" href="#live">View live decisions →</a>
+          <a class="cta ghost" href="#how">How it works</a>
+          <a class="cta ghost" href="https://github.com/Zerxxz/OPTIC-PROJECT" target="_blank" rel="noopener">Source on GitHub</a>
+        </div>
+        <div class="hero-stats">
+          <div><div class="num">60</div><div class="lbl">Move unit tests</div></div>
+          <div><div class="num">19</div><div class="lbl">Orchestrator tests</div></div>
+          <div><div class="num">5</div><div class="lbl">Move modules</div></div>
+          <div><div class="num">3</div><div class="lbl">Specialist agents</div></div>
+        </div>
       </div>
-      <div class="compare-col good">
-        <h3>⚡ The OPTIC cure</h3>
-        <ul>
-          <li>Strategy committed to Walrus + sha256 hash stored on-chain</li>
-          <li>Capability-gated actions across quant / risk / executor roles</li>
-          <li>Every decision + reasoning logged to an on-chain AuditEntry</li>
-          <li>Anyone can replay every cycle and audit the risk gates</li>
-        </ul>
+    </section>
+
+    <!-- ───── How it works ───── -->
+    <section class="block" id="how">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <span class="eyebrow">Why OPTIC</span>
+          <h2>Transparency, <span class="accent">enforced by Move</span></h2>
+          <p>Most “AI agent” demos are opaque — one key, one prompt, an unverifiable trade history. OPTIC commits everything on-chain.</p>
+        </div>
+        <div class="grid three">
+          <article class="card" data-reveal>
+            <div class="ico">🥾</div>
+            <div class="step">01 · Commitment</div>
+            <h3>Strategy hash on-chain</h3>
+            <p>The owner uploads a strategy to Walrus; the <code>core::Agent</code> object stores the <code>blob_id</code> + <code>sha256</code>. The contract refuses any strategy that doesn't match the committed hash.</p>
+          </article>
+          <article class="card" data-reveal>
+            <div class="ico">🔐</div>
+            <div class="step">02 · Capability gates</div>
+            <h3>Three signing roles</h3>
+            <p>Quant, risk, and executor each hold an <code>AgentCap</code>. Orders only execute when the right combination of caps signs the PTB — defence in depth, on-chain.</p>
+          </article>
+          <article class="card" data-reveal>
+            <div class="ico">📜</div>
+            <div class="step">03 · Audit log</div>
+            <h3>Multi-agent decision log</h3>
+            <p>A quant proposes, risk can veto or hedge, executor re-checks. The winning decision — with full reasoning — is logged to Walrus and anchored to an on-chain <code>AuditEntry</code>.</p>
+          </article>
+          <article class="card" data-reveal>
+            <div class="ico">🛡️</div>
+            <div class="step">04 · Tail hedge</div>
+            <h3>Predict risk hedge</h3>
+            <p>When realized vol crosses threshold, the risk agent opens a <code>NO</code> position on DeepBook Predict — strike 5% OTM, 24h expiry, sized at 1% of treasury.</p>
+          </article>
+          <article class="card" data-reveal>
+            <div class="ico">🏪</div>
+            <div class="step">05 · Ownership</div>
+            <h3>Strategy NFT via Kiosk</h3>
+            <p>Strategies are first-class Sui objects — transferable, licensable, and forkable through the standard Sui Kiosk marketplace.</p>
+          </article>
+          <article class="card" data-reveal>
+            <div class="ico">⚡</div>
+            <div class="step">06 · Treasury</div>
+            <h3>Per-tx caps + circuit breaker</h3>
+            <p><code>Treasury&lt;T&gt;</code> enforces per-transaction limits and a daily-loss circuit breaker that pauses the agent automatically when risk budget is exceeded.</p>
+          </article>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- FEATURES -->
-  <section id="features" class="wrap">
-    <div class="section-head">
-      <h2>Why <span class="grad-text">OPTIC</span></h2>
-      <p>Five primitives that make an AI quant agent verifiable end-to-end.</p>
-    </div>
-    <div class="grid grid-3">
-      <div class="card"><div class="ic">🧩</div><h3>Strategy commitment</h3><p>The owner uploads a strategy to Walrus; the <code>core::Agent</code> Move object stores the <code>blob_id</code> + <code>sha256</code> on-chain and refuses any strategy that doesn't match the committed hash.</p></div>
-      <div class="card"><div class="ic">🔐</div><h3>Capability-gated actions</h3><p>Three roles — <code>quant</code>, <code>risk</code>, <code>executor</code> — each get a <code>core::AgentCap</code>. Orders only place when the right combination of caps sign the PTB.</p></div>
-      <div class="card"><div class="ic">🧠</div><h3>Multi-agent decision log</h3><p>A QuantAgent proposes, a RiskAgent can veto or hedge, an ExecutorAgent re-checks. The winning decision with full reasoning is anchored to an on-chain AuditEntry.</p></div>
-      <div class="card"><div class="ic">🛡️</div><h3>Predict tail-hedge</h3><p>When realized vol crosses the threshold, the risk agent opens a NO position on DeepBook Predict — strike 5% OTM, 24h expiry, sized at 1% of treasury.</p></div>
-      <div class="card"><div class="ic">💎</div><h3>Strategy NFT via Kiosk</h3><p>Strategies are first-class objects that can be transferred, licensed, or forked through the standard Sui Kiosk marketplace.</p></div>
-      <div class="card"><div class="ic">🌊</div><h3>Walrus-hosted site</h3><p>This site is a Walrus Site — hosted as a blob, no AWS, no central server. Censorship-resistant by default.</p></div>
-    </div>
-  </section>
-
-  <!-- LIVE DECISIONS -->
-  <section id="decisions" class="live">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>Live <span class="grad-text">decisions</span></h2>
-        <p>Every cycle the orchestrator emits an on-chain AuditEntry. Replay and filter the multi-agent decision log below.</p>
+    <!-- ───── Live decisions ───── -->
+    <section class="block live" id="live">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <span class="eyebrow">Replayable</span>
+          <h2>Live <span class="accent">decision log</span></h2>
+          <p>Every entry below is anchored to a Walrus blob and an on-chain audit record. Filter by agent or action, then refresh.</p>
+        </div>
+        <div class="filter-row" data-reveal>
+          <label>Agent
+            <select id="f-agent">
+              <option value="all">all</option>
+              <option value="quant">quant</option>
+              <option value="risk">risk</option>
+              <option value="executor">executor</option>
+            </select>
+          </label>
+          <label>Action
+            <select id="f-action">
+              <option value="all">all</option>
+              <option value="place_order">place_order</option>
+              <option value="open_hedge">open_hedge</option>
+              <option value="pause">pause</option>
+              <option value="no_op">no_op</option>
+            </select>
+          </label>
+          <button class="btn-mini" id="refresh"><span class="spin">↻</span> Refresh</button>
+        </div>
+        <div class="decisions" id="decisions">
+          <div class="decision placeholder">Loading decisions…</div>
+        </div>
       </div>
-      <div class="filter-row">
-        <label>Agent
-          <select id="filter-agent">
-            <option value="all">All</option>
-            <option value="quant">Quant</option>
-            <option value="risk">Risk</option>
-            <option value="executor">Executor</option>
-          </select>
-        </label>
-        <label>Action
-          <select id="filter-action">
-            <option value="all">All</option>
-            <option value="place_order">Place order</option>
-            <option value="open_hedge">Open hedge</option>
-            <option value="pause">Pause</option>
-            <option value="no_op">No-op</option>
-          </select>
-        </label>
-        <button id="refresh" class="btn-small">↻ Refresh</button>
-        <span id="feed-source" class="feed-source">mock data</span>
+    </section>
+
+    <!-- ───── Agents ───── -->
+    <section class="block" id="agents">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <span class="eyebrow">Multi-agent</span>
+          <h2>Three minds, <span class="accent">one ledger</span></h2>
+          <p>Each agent has its own SuiNS identity and capability. They negotiate every cycle and log the winner.</p>
+        </div>
+        <div class="grid three">
+          <article class="agent-card" data-reveal>
+            <div class="aid">quant.sui</div>
+            <h3>Quant</h3>
+            <p>Proposes trades from mean-reversion, momentum, and market-making strategies against the DeepBook CLOB.</p>
+            <div class="chips"><span class="chip">mean-reversion</span><span class="chip">momentum</span><span class="chip">market-making</span></div>
+          </article>
+          <article class="agent-card" data-reveal>
+            <div class="aid">risk.sui</div>
+            <h3>Risk</h3>
+            <p>Holds veto power, monitors realized volatility, and opens Predict tail-hedges when the risk budget is breached.</p>
+            <div class="chips"><span class="chip">veto</span><span class="chip">vol monitor</span><span class="chip">predict hedge</span></div>
+          </article>
+          <article class="agent-card" data-reveal>
+            <div class="aid">executor.sui</div>
+            <h3>Executor</h3>
+            <p>Performs defence-in-depth re-checks and dispatches the final PTB once all capability gates are satisfied.</p>
+            <div class="chips"><span class="chip">re-check</span><span class="chip">dispatch</span><span class="chip">PTB</span></div>
+          </article>
+        </div>
       </div>
-      <div id="decisions" class="decisions" aria-live="polite">
-        <div class="decision placeholder">Loading decision log…</div>
+    </section>
+
+    <!-- ───── Tracks ───── -->
+    <section class="block" id="tracks">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <span class="eyebrow">Submission</span>
+          <h2>Four tracks, <span class="accent">stacked bonuses</span></h2>
+          <p>OPTIC is submitted to Sui Overflow 2026 across two core and two specialized tracks.</p>
+        </div>
+        <div class="grid four">
+          <div class="track" data-reveal><div class="prize">$30K+</div><div class="tname">Agentic Web</div><div class="tdesc">Core. Verifiable multi-capability AI agent.</div><span class="tstatus">Submitted</span></div>
+          <div class="track" data-reveal><div class="prize">$30K+</div><div class="tname">DeFi &amp; Payments</div><div class="tdesc">Core. Spot + Predict + Treasury primitives.</div><span class="tstatus">Submitted</span></div>
+          <div class="track" data-reveal><div class="prize">$70K</div><div class="tname">DeepBook</div><div class="tdesc">Specialized. CLOB + Predict hedges.</div><span class="tstatus">Submitted</span></div>
+          <div class="track" data-reveal><div class="prize">$70K</div><div class="tname">Walrus</div><div class="tdesc">Specialized. Strategy blob + audit log on Walrus.</div><span class="tstatus">Submitted</span></div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- TRACKS -->
-  <section id="tracks" class="wrap">
-    <div class="section-head">
-      <h2>Submission <span class="grad-text">tracks</span></h2>
-      <p>OPTIC is submitted to Sui Overflow 2026 across four tracks — bonuses stack.</p>
-    </div>
-    <div class="grid grid-4">
-      <div class="card track"><div class="prize grad-text">$30K+</div><div class="tname">Agentic Web</div><div class="tdesc">Core track. Verifiable multi-capability AI agent.</div></div>
-      <div class="card track"><div class="prize grad-text">$30K+</div><div class="tname">DeFi &amp; Payments</div><div class="tdesc">Core track. Spot + Predict + Treasury primitives on Sui.</div></div>
-      <div class="card track"><div class="prize grad-text">$70K</div><div class="tname">DeepBook</div><div class="tdesc">Specialized. Quant strategy uses DeepBook CLOB + Predict hedges.</div></div>
-      <div class="card track"><div class="prize grad-text">$70K</div><div class="tname">Walrus</div><div class="tdesc">Specialized. Strategy blob + audit log live on Walrus.</div></div>
-    </div>
-  </section>
+    <!-- ───── Built for Sui ───── -->
+    <section class="block" id="stack">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <span class="eyebrow">Stack</span>
+          <h2>Built for <span class="accent">Sui</span></h2>
+          <p>Move · Sui object model · DeepBook V3 · Walrus · zkLogin · SuiNS · Sui Kiosk.</p>
+        </div>
+        <div class="grid two">
+          <div class="card feature" data-reveal><div class="fico">🪪</div><div><h3>Identity</h3><p>Main project <code>optic.sui</code>; agents <code>quant.sui</code>, <code>risk.sui</code>, <code>executor.sui</code> via SuiNS.</p></div></div>
+          <div class="card feature" data-reveal><div class="fico">🔑</div><div><h3>zkLogin auth</h3><p>Sign in with Google and prove Sui ownership — no seed phrase, no extension required.</p></div></div>
+          <div class="card feature" data-reveal><div class="fico">🌐</div><div><h3>Walrus Site hosting</h3><p>This site is served as a blob — no AWS, no central server. Censorship-resistant by default.</p></div></div>
+          <div class="card feature" data-reveal><div class="fico">📦</div><div><h3>Open monorepo</h3><p>5 Move modules, a TypeScript SDK, a multi-agent orchestrator, and this Walrus Site.</p></div></div>
+        </div>
+      </div>
+    </section>
 
-  <!-- BUILT FOR SUI -->
-  <section id="sui" class="wrap">
-    <div class="section-head">
-      <h2>Built for <span class="grad-text">Sui</span></h2>
-    </div>
-    <div class="grid grid-4">
-      <div class="card"><div class="ic">🪪</div><h3>Identity</h3><p>Main: <code>optic.sui</code> · Agents: <code>quant.sui</code>, <code>risk.sui</code>, <code>executor.sui</code></p></div>
-      <div class="card"><div class="ic">🔑</div><h3>Auth</h3><p>zkLogin — sign in with Google, prove Sui ownership without a seed phrase.</p></div>
-      <div class="card"><div class="ic">🌐</div><h3>Hosting</h3><p>This site is a Walrus Site — hosted as a blob, no central server, censorship-resistant.</p></div>
-      <div class="card"><div class="ic">📦</div><h3>Repository</h3><p>Monorepo: 5 Move modules, TypeScript SDK, multi-agent orchestrator, Walrus Site.</p></div>
-    </div>
-  </section>
+    <!-- ───── CTA banner ───── -->
+    <section class="block">
+      <div class="wrap">
+        <div class="banner" data-reveal>
+          <h2>Audit every decision yourself</h2>
+          <p>Clone the repo, run the orchestrator demo, and replay 14 cycles locally — no Sui keys required.</p>
+          <a class="cta primary" href="https://github.com/Zerxxz/OPTIC-PROJECT" target="_blank" rel="noopener">Explore the source →</a>
+        </div>
+      </div>
+    </section>
+  </main>
 
-  <!-- FOOTER -->
-  <footer class="footer wrap">
-    <div class="footer-inner">
-      <a class="brand" href="#top"><span class="logo"></span> OPTIC</a>
-      <div class="footer-links">
+  <!-- ───── Footer ───── -->
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span class="muted">OPTIC © <span id="year">2026</span> · Apache-2.0 · Built for Sui Overflow 2026</span>
+      <div class="links">
         <a href="https://github.com/Zerxxz/OPTIC-PROJECT" target="_blank" rel="noopener">GitHub</a>
-        <a href="#features">Features</a>
-        <a href="#decisions">Live decisions</a>
+        <a href="#how">How it works</a>
+        <a href="#live">Decisions</a>
         <a href="#tracks">Tracks</a>
       </div>
-      <span class="muted">© <span id="year"></span> OPTIC · Apache-2.0 · Built for Sui Overflow 2026</span>
     </div>
   </footer>
 
-  <script type="module" src="decisions.js"></script>
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-    var connect = document.getElementById('connect');
-    connect.addEventListener('click', function () {
-      var on = connect.classList.toggle('connected');
-      connect.textContent = on ? '✓ 0xopt…c.sui' : 'Connect Wallet';
-    });
-  </script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
