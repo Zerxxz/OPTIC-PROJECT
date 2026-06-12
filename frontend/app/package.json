@@ -1,0 +1,19 @@
+{
+  "name": "optic-frontend",
+  "version": "0.1.0",
+  "description": "OPTIC frontend — Vite + TypeScript build for Walrus Sites",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.9.0",
+    "vite": "^8.0.16",
+    "vite-plugin-static-copy": "^4.1.1"
+  }
+}

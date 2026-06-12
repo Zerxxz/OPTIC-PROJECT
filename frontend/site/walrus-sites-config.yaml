@@ -1,4 +1,5 @@
 routes:
+  # HTML pages (Vite output)
   - path: /
     file: index.html
   - path: /index.html
@@ -13,11 +14,27 @@ routes:
     file: links.html
   - path: /tracks.html
     file: tracks.html
-  - path: /chrome.js
-    file: chrome.js
-  - path: /decisions.js
-    file: decisions.js
+
+  # Shared assets (Vite output, stable filenames)
+  - path: /assets/chrome.js
+    file: assets/chrome.js
+  - path: /assets/style.css
+    file: assets/style.css
+  - path: /assets/decisions.js
+    file: assets/decisions.js
+  - path: /assets/index.js
+    file: assets/index.js
+  - path: /assets/how.js
+    file: assets/how.js
+  - path: /assets/agents.js
+    file: assets/agents.js
+  - path: /assets/links.js
+    file: assets/links.js
+  - path: /assets/tracks.js
+    file: assets/tracks.js
+
+  # Static assets (Vite publicDir — copied to dist/ root)
   - path: /zklogin.mjs
     file: zklogin.mjs
-  - path: /style.css
-    file: style.css
+  - path: /favicon.svg
+    file: favicon.svg

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agents — OPTIC</title>
+  <meta name="description" content="The three specialist agents that operate a single OPTIC Agent on Sui." />
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%236fbfff'/><stop offset='1' stop-color='%2300d4ff'/></linearGradient></defs><path d='M50 8 C30 38 18 55 18 70 a32 32 0 0 0 64 0 C82 55 70 38 50 8z' fill='url(%23g)'/><circle cx='50' cy='70' r='14' fill='%23001a2c'/></svg>" />
+</head>
+<body data-page="agents">
+  <main>
+    <header class="page-header">
+      <p class="kicker">Multi-agent system</p>
+      <h1>The three <span class="gradient">specialists</span></h1>
+      <p>Each agent is a pure function. They negotiate, the risk agent has veto power, and
+        the executor does defence-in-depth validation before any PTB is signed.</p>
+    </header>
+
+    <section class="agents">
+      <div class="grid three">
+        <div class="agent-card">
+          <div class="agent-id">quant.sui</div>
+          <h3>Quant</h3>
+          <p>Reads the DeepBook orderbook + indexer, evaluates a pluggable strategy
+          (mean-reversion, momentum, market-making, or custom), and proposes a trade with a
+          confidence score.</p>
+          <ul>
+            <li>Inputs: Agent state, market state, strategy blob</li>
+            <li>Output: <code>place_order</code> or <code>no_op</code></li>
+            <li>Confidence: 0–10,000 bps</li>
+            <li>Strategies: mean-reversion, momentum, market-making</li>
+          </ul>
+        </div>
+        <div class="agent-card">
+          <div class="agent-id">risk.sui</div>
+          <h3>Risk</h3>
+          <p>Monitors realized vol, drawdown, and exposure. Has <strong>veto power</strong>:
+          can pause the agent entirely or open a <strong>DeepBook Predict</strong> hedge to cap
+          downside.</p>
+          <ul>
+            <li>Circuit breaker: -$50 daily loss → pause</li>
+            <li>High vol: &gt; 8% → open NO hedge (1% of treasury)</li>
+            <li>Strike: 5% OTM put, 24h expiry</li>
+            <li>Veto: if paused, every other action is suppressed</li>
+          </ul>
+        </div>
+        <div class="agent-card">
+          <div class="agent-id">executor.sui</div>
+          <h3>Executor</h3>
+          <p>Defence-in-depth gate. Re-checks every risk param, sizes within exposure limits,
+          and composes the final PTB. Logs an <code>AuditEntry</code> to Walrus.</p>
+          <ul>
+            <li>Defence in depth — never trust upstream</li>
+            <li>Idempotent dispatch</li>
+            <li>Audit log on every action</li>
+            <li>PTB composition: tx.moveCall chained</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <header class="page-header" style="padding-top: 0;">
+        <h2>Merge &amp; <span class="accent">validate</span></h2>
+        <p>The orchestrator combines specialist outputs deterministically.</p>
+      </header>
+      <div class="grid two">
+        <div class="card">
+          <h3>Risk has veto</h3>
+          <p>If <code>risk.decide()</code> returns <code>pause</code>, the orchestrator
+          halts the agent regardless of what quant proposed. The pause action is dispatched
+          and an audit entry is logged.</p>
+        </div>
+        <div class="card">
+          <h3>Highest confidence wins</h3>
+          <p>When both quant and risk return non-pause actions, the decision with the higher
+          <code>confidenceBps</code> is selected. The runner-up is logged but not executed.</p>
+        </div>
+        <div class="card">
+          <h3>Validate (defence in depth)</h3>
+          <p>Before dispatch, the orchestrator re-validates: size ≤ max position, price ≠ 0,
+          treasury ≥ hedge size, status = active. A failure here is logged as
+          <code>decision_rejected</code>.</p>
+        </div>
+        <div class="card">
+          <h3>Idempotent PTB</h3>
+          <p>The PTB is deterministic for the same state + market. Re-running the same cycle
+          produces the same on-chain call sequence. This is critical for audit replay.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./chrome.js"></script>
+</body>
+</html>

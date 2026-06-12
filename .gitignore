@@ -8,6 +8,10 @@ build/
 .env.local
 .env.*.local
 
+# Vite
+.vite/
+*.tsbuildinfo
+
 # Move
 contracts/**/build/
 contracts/**/Move.lock

@@ -67,12 +67,25 @@ optic/
 │   │   ├── agents/                base, quant, risk, executor
 │   │   └── strategies/            mean-reversion, momentum, market-making
 │   └── src/__tests__/             12/12 ✅
-├── frontend/site/           # Walrus Site (static, no build step)
-│   ├── index.html
-│   ├── app.js
-│   ├── decisions.js
-│   ├── style.css
-│   └── walrus-sites-config.yaml
+├── frontend/
+│   ├── app/                # Vite + TypeScript source (ESM modules, strict TS)
+│   │   ├── src/
+│   │   │   ├── pages/            6 HTML entry points
+│   │   │   ├── scripts/          6 per-page TS entries
+│   │   │   ├── modules/          chrome, decisions, head, zkLogin
+│   │   │   ├── types/            Decision, DecisionFilters, ZkLoginSession
+│   │   │   └── assets/optic.css  18 kB shared stylesheet
+│   │   ├── public/               zklogin.mjs (lazy-loaded), favicon.svg
+│   │   ├── vite.config.ts        multi-page, lazy zkLogin split
+│   │   └── tsconfig.json         strict, ES2022, @/* alias
+│   ├── site/               # BUILT output (Vite build → Walrus Site deploy)
+│   │   ├── index.html
+│   │   ├── agents.html, decisions.html, how.html, links.html, tracks.html
+│   │   ├── assets/{chrome,style.css,decisions,...}.js
+│   │   ├── zklogin.mjs           (1MB, lazy-loaded on Connect click)
+│   │   ├── favicon.svg
+│   │   └── walrus-sites-config.yaml
+│   └── site.legacy/        # Pre-Vite static site (BACKUP — kept for reference)
 ├── scripts/                 # Deployment & demo
 │   ├── publish.sh
 │   ├── init-agent.sh
@@ -97,8 +110,18 @@ npx tsx --test src/__tests__/orchestrator.test.ts
 cd ..
 npx tsx scripts/demo-cycle.mts --n 14
 
-# 3. Serve the Walrus Site locally
-cd frontend/site
+# 3. Develop the frontend (Vite + TypeScript, hot reload)
+cd frontend/app
+pnpm install
+pnpm dev
+# → http://localhost:5173 (HMR enabled)
+
+# 4. Build for Walrus deployment
+pnpm build
+# → outputs to ../site/ (Walrus Site ready)
+
+# 5. Serve the built site locally
+cd ../site
 python3 -m http.server 8089
 # → open http://localhost:8089/
 ```

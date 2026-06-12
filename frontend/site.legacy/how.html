@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How it works — OPTIC</title>
+  <meta name="description" content="The 6-step pipeline behind OPTIC's verifiable AI quant agent." />
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%236fbfff'/><stop offset='1' stop-color='%2300d4ff'/></linearGradient></defs><path d='M50 8 C30 38 18 55 18 70 a32 32 0 0 0 64 0 C82 55 70 38 50 8z' fill='url(%23g)'/><circle cx='50' cy='70' r='14' fill='%23001a2c'/></svg>" />
+</head>
+<body data-page="how">
+  <main>
+    <header class="page-header">
+      <p class="kicker">Pipeline</p>
+      <h1>How <span class="gradient">OPTIC</span> works</h1>
+      <p>From strategy commitment to on-chain audit log, in six steps.</p>
+    </header>
+
+    <section>
+      <div class="grid">
+        <div class="card">
+          <div class="step">STEP 01</div>
+          <h3>Strategy commitment</h3>
+          <p>The owner uploads a strategy to <strong>Walrus</strong> and the agent stores the
+          <code>blob_id</code> + <code>sha256</code> on-chain. The Move contract refuses to act
+          on any strategy that doesn't match the committed hash.</p>
+          <ul>
+            <li>Walrus blob: strategy code + parameters</li>
+            <li>On-chain: blob_id, sha256, suins_name</li>
+            <li>Refusal: enum mismatch → abort</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="step">STEP 02</div>
+          <h3>Capability-gated actions</h3>
+          <p>Three roles — <code>quant</code>, <code>risk</code>, <code>executor</code> — each get
+          a <code>AgentCap</code>. The Move contract enforces that an order can only be placed
+          when the right combination of caps sign the PTB.</p>
+          <ul>
+            <li>quant_cap: 0 — propose trades</li>
+            <li>risk_cap:  1 — propose hedges, veto</li>
+            <li>exec_cap:  2 — dispatch PTB</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="step">STEP 03</div>
+          <h3>Multi-agent decision</h3>
+          <p>Off-chain, a <strong>Quant</strong>, <strong>Risk</strong>, and <strong>Executor</strong>
+          specialist negotiate. Risk can veto. The winning decision — with full reasoning — is
+          logged to <strong>Walrus</strong> and anchored to the on-chain audit entry.</p>
+          <ul>
+            <li>Inputs: Agent state, market state, strategy</li>
+            <li>Merge: risk veto, else highest confidence</li>
+            <li>Output: Decision{action, reasoning, confidenceBps}</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="step">STEP 04</div>
+          <h3>Predict hedge</h3>
+          <p>When realized vol crosses the threshold, <code>RiskAgent</code> opens a <strong>NO</strong>
+          position on <strong>DeepBook Predict</strong> as a tail-risk hedge. The strike is
+          computed from spot mid and capped at 1% of treasury.</p>
+          <ul>
+            <li>Threshold: volBps &gt; 800 (8%)</li>
+            <li>Strike: 5% OTM put from mid</li>
+            <li>Size: 1% of treasury balance</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="step">STEP 05</div>
+          <h3>Strategy NFT via Kiosk</h3>
+          <p>The strategy blob is published to <strong>Sui Kiosk</strong> as a transferrable
+          NFT. Sell, license, or fork any strategy on a public marketplace.</p>
+          <ul>
+            <li>Transferable: standard Sui Kiosk item</li>
+            <li>License: royalty enforced on transfer</li>
+            <li>Fork: anyone can publish a child strategy</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="step">STEP 06</div>
+          <h3>Realtime transparency</h3>
+          <p>This very page reads the audit log straight from Walrus and renders the latest
+          decisions. No backend, no scraping, no trust.</p>
+          <ul>
+            <li>Source: Walrus blob (json array)</li>
+            <li>Fallback: deterministic mock dataset</li>
+            <li>Render: vanilla DOM, no framework</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./chrome.js"></script>
+</body>
+</html>
